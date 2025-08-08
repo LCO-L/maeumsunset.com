@@ -1,4 +1,6 @@
+// app.js (drop-in replacement)
 
+// ===== Global state =====
 let CFG = null;
 let state = {
   fireScore: 0, level: 0, streak: 0, yesterday: '',
@@ -8,17 +10,19 @@ let state = {
 // --- PROBE must exist before any use (avoid TDZ) ---
 let PROBE = { bank: null };
 
+// ---- Questions ----
 const QUESTIONS = [
   "오늘 마음을 가장 흔든 장면은 무엇이었나요?",
   "지금 나를 가장 지치게 하는 것은 무엇인가요?",
   "오늘 나를 웃게 만든 작은 순간은 무엇이었나요?",
-  "이번 주에 기대하는 일은 무엇인가요?",
+  "이번 주에 기대하는 일은 무엇이인가요?",
   "오늘 하루를 색으로 표현한다면 어떤 색인가요? 왜죠?"
 ];
 
-const $ = sel => document.querySelector(sel);
+// ---- Safe DOM helpers ----
+const $ = (sel) => document.querySelector(sel);
 
-// Elements are assigned after DOM is ready
+// Elements
 let journal, lengthHint, levelHint, scoreHint, toast, streakBadge, campfireGate, questionCard, canvas, ctx;
 let P1, P2, P3, phaseLenHint, phaseBadge, phaseHint, probeBtn, probeChips, saveBtn;
 
@@ -28,24 +32,29 @@ let deferredPrompt = null;
 const MemoryStore = { _m: {}, set(k,v){ this._m[k]=v; }, get(k){ return this._m[k]; } };
 function safeSetItem(k, v){
   try { localStorage.setItem(k, v); }
-  catch(e){ try { indexedDB; /* touch */ MemoryStore.set(k,v); } catch(_) { MemoryStore.set(k,v); } }
+  catch(e){ try { indexedDB; MemoryStore.set(k,v); } catch(_) { MemoryStore.set(k,v); } }
 }
 function safeGetItem(k){
   try { return localStorage.getItem(k); } catch(e){ return MemoryStore.get(k) || null; }
 }
 
-// SW
+// ---- Service Worker ----
 async function registerSW(){
-  if('serviceWorker' in navigator){
-    try { await navigator.serviceWorker.register('service-worker.js'); }
-    catch(e){ console.log('SW failed', e); }
+  if(!('serviceWorker' in navigator)) return;
+  try {
+    await navigator.serviceWorker.register('service-worker.js');
+  } catch(e){
+    console.log('SW failed', e);
+    // 실패 시 설치 UI 감춤
+    const btn = $('#installBtn'); if (btn) btn.style.display = 'none';
+    const banner = $('#dockBanner'); if (banner) banner.classList.remove('show');
   }
 }
 
-function saveState(){
-  safeSetItem('sunset_state', JSON.stringify(state));
-}
+// ---- Persist app state ----
+function saveState(){ safeSetItem('sunset_state', JSON.stringify(state)); }
 
+// ---- UI helpers ----
 function showToast(msg){
   if(!toast) return;
   toast.textContent = msg;
@@ -53,11 +62,11 @@ function showToast(msg){
   setTimeout(()=>toast.classList.remove('show'), 1600);
 }
 
-// Level mapping
+// ---- Levels ----
 function getLevel(score){
-  const lv = CFG.levels || [];
+  const lv = CFG?.levels || [];
   for(const L of lv){
-    if(score >= L.min_score && (L.max_score === null || score <= L.max_score)){
+    if(score >= L.min_score && (L.max_score == null || score <= L.max_score)){
       return L.level;
     }
   }
@@ -67,13 +76,14 @@ function getLevel(score){
 function updateUI(){
   if(!levelHint || !scoreHint || !campfireGate || !streakBadge) return;
   state.level = getLevel(state.fireScore);
-  levelHint.textContent = `L${state.level} · ${CFG.levels?.[state.level]?.name || '불씨'}`;
+  const levelObj = (CFG?.levels || []).find(L => L.level === state.level);
+  levelHint.textContent = `L${state.level} · ${levelObj?.name ?? '불씨'}`;
   scoreHint.textContent = `score ${state.fireScore}`;
   campfireGate.textContent = `Campfire 입장권: 기록 ${state.longCount}/3`;
   streakBadge.textContent = `연속 ${state.streak}일`;
 }
 
-// Simple canvas fire using sprite sheet slices
+// ---- Simple canvas fire ----
 const sprite = new Image();
 sprite.src = 'assets/fire_levels_spritesheet.png';
 function drawFire(len=0){
@@ -85,15 +95,15 @@ function drawFire(len=0){
   // sprite mapping (4x2 grid -> 8 levels)
   const col = state.level % 4;
   const row = Math.floor(state.level / 4);
-  const sw = sprite.width/4;
-  const sh = sprite.height/2;
+  const sw = (sprite.width||0)/4;
+  const sh = (sprite.height||0)/2;
   const sx = col * sw;
   const sy = row * sh;
   const dw = 480, dh = 280;
   const dx = (canvas.width - dw)/2;
   const dy = 20;
-  if(sprite.complete){
-    ctx.drawImage(sprite, sx, sy, sw, sh, dx, dy, dw, dh);
+  if(sprite.complete && sw>0 && sh>0){
+    try { ctx.drawImage(sprite, sx, sy, sw, sh, dx, dy, dw, dh); } catch(_) {}
   } else {
     sprite.onload = ()=> drawFire(len);
   }
@@ -122,26 +132,31 @@ function burst(){
   }
   requestAnimationFrame(frame);
 }
-
 function scalePulse(){ burst(); }
 
+// ---- Scoring ----
 function addScore(n){
   state.fireScore = Math.max(0, Math.round((state.fireScore + n)*10)/10);
   saveState();
 }
+// (권장) 장작/점수 분리: 장작 카운트만
 function addLogUnits(n){
-  addScore(n);
+  state.longCount = (state.longCount || 0) + n;
+  saveState();
 }
+
 function updateStreak(){
   if(!streakBadge) return;
   const today = new Date().toISOString().slice(0,10);
-  const prev = localStorage.getItem('sunset_last_date');
+  const prev = safeGetItem('sunset_last_date');
   if(prev === today) return;
-  const y = new Date();
-  y.setDate(y.getDate()-1);
+
+  const y = new Date(); y.setDate(y.getDate()-1);
   const ystr = y.toISOString().slice(0,10);
-  if(prev === ystr) state.streak += 1; else state.streak = 1;
+  state.streak = (prev === ystr) ? (state.streak||0) + 1 : 1;
+
   streakBadge.textContent = `연속 ${state.streak}일`;
+  safeSetItem('sunset_last_date', today);
   saveState();
 }
 
@@ -150,29 +165,17 @@ const STEPS = [
   {
     name: "① 사건·상황 서술",
     placeholder: "무슨 일이 있었나요? 가능한 구체적으로 적어주세요.",
-    probes: [
-      "어느 장소에서, 누구와 있었나요?",
-      "그 순간에 보았던 것/들었던 소리는 무엇이었나요?",
-      "이전과 달랐던 점은 무엇이었나요?"
-    ]
+    probes: ["어느 장소에서, 누구와 있었나요?","그 순간에 보았던 것/들었던 소리는 무엇이었나요?","이전과 달랐던 점은 무엇이었나요?"]
   },
   {
     name: "② 감정·생각 구체화",
     placeholder: "그때 어떤 감정/생각이 들었나요? 이유도 적어주세요.",
-    probes: [
-      "가장 크게 느낀 감정 하나를 고르자면 무엇인가요?",
-      "그 감정이 몸에서 어떻게 느껴졌나요? (심장, 호흡, 긴장 등)",
-      "그 생각이 생긴 배경에는 어떤 믿음이 있나요?"
-    ]
+    probes: ["가장 크게 느낀 감정 하나를 고르자면 무엇인가요?","그 감정이 몸에서 어떻게 느껴졌나요? (심장, 호흡, 긴장 등)","그 생각이 생긴 배경에는 어떤 믿음이 있나요?"]
   },
   {
     name: "③ 자기 성찰 요약",
     placeholder: "지금 이 기록이 나에게 주는 의미는 무엇인가요? 다음에 나는 무엇을 선택하나요?",
-    probes: [
-      "오늘 배운 한 문장은 무엇인가요?",
-      "지금 나를 돕는 작은 행동 하나는 무엇인가요?",
-      "이 순간을 한 단어로 요약한다면?"
-    ]
+    probes: ["오늘 배운 한 문장은 무엇인가요?","지금 나를 돕는 작은 행동 하나는 무엇인가요?","이 순간을 한 단어로 요약한다면?"]
   }
 ];
 
@@ -181,17 +184,22 @@ let buffers = ["", "", ""];
 
 function loadStep(i){
   stepIndex = Math.max(0, Math.min(2, i));
-  $('#stepNow').textContent = (stepIndex+1);
-  $('#stepTitle').textContent = STEPS[stepIndex].name;
+  const stepNow   = $('#stepNow');
+  const stepTitle = $('#stepTitle');
+  stepNow   && (stepNow.textContent   = (stepIndex+1));
+  stepTitle && (stepTitle.textContent = STEPS[stepIndex].name);
   const ta = $('#journal');
-  ta.placeholder = STEPS[stepIndex].placeholder;
-  ta.value = buffers[stepIndex] || '';
+  if (ta) {
+    ta.placeholder = STEPS[stepIndex].placeholder;
+    ta.value = buffers[stepIndex] || '';
+  }
   updateLengthHint();
   renderProbes();
 }
 
 function renderProbes(){
   const list = $('#probeList');
+  if(!list) return;
   list.innerHTML = '';
   STEPS[stepIndex].probes.forEach(q=>{
     const li = document.createElement('li');
@@ -211,69 +219,36 @@ function updateLengthHint(){
   drawFire(len);
 }
 
-// ==== Probe system (3-phase) ====
-async function loadProbeBank(){
-  try{
-    const res = await fetch('probe_bank.json');
-    PROBE.bank = await res.json();
-  }catch(e){
-    PROBE.bank = {phase1:[], phase2:[], phase3:[], followups:[]};
-  }
-}
-
-function currentPhase(){
-  const c1 = (P1.value.trim().length >= 70);
-  const c2 = (P2.value.trim().length >= 70);
-  const c3 = (P3.value.trim().length >= 70);
-  const done = [c1,c2,c3].filter(Boolean).length;
-  return {done, c1, c2, c3};
-}
-
-function updatePhaseUI(){
-  const st = currentPhase();
-  phaseLenHint.textContent = `${st.done}/3 단계 충족`;
-  phaseBadge.textContent = `${Math.max(1, st.done+1)}/3 단계`;
-  const labels = ['사건·상황 서술','감정·생각 구체화','자기 성찰 요약'];
-  phaseHint.textContent = labels[Math.min(2, st.done)];
-}
-
+// ---- Dynamic probes ----
 const debounce = (fn, ms=900) => { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 const FEELINGS = [
   {kw:['행복','기쁨','설렘','뿌듯','즐거'], tag:'positive', ask:[
-    "그 기쁨을 10점 만점에 몇 점으로 느꼈나요?",
-    "그 감정이 오래가도록 내가 붙잡을 한 가지는 무엇일까요?"
+    "그 기쁨을 10점 만점에 몇 점으로 느꼈나요?","그 감정이 오래가도록 내가 붙잡을 한 가지는 무엇일까요?"
   ]},
   {kw:['슬픔','우울','힘들','지침','괴로','눈물'], tag:'sad', ask:[
-    "그 슬픔의 무게를 가볍게 하는 작은 행동이 있을까요?",
-    "그 감정이 알려주는 필요는 무엇일까요?"
+    "그 슬픔의 무게를 가볍게 하는 작은 행동이 있을까요?","그 감정이 알려주는 필요는 무엇일까요?"
   ]},
   {kw:['분노','화났','짜증','억울','불공'], tag:'anger', ask:[
-    "경계가 침해된 지점은 어디였나요?",
-    "내가 지키고 싶은 선을 한 줄로 적어볼까요?"
+    "경계가 침해된 지점은 어디였나요?","내가 지키고 싶은 선을 한 줄로 적어볼까요?"
   ]},
   {kw:['불안','걱정','초조','긴장','두려'], tag:'anx', ask:[
-    "가장 두려운 시나리오는 무엇이며, 그 확률은 몇 %라고 느끼나요?",
-    "지금 바로 할 수 있는 5분짜리 대비 행동은 뭘까요?"
+    "가장 두려운 시나리오는 무엇이며, 그 확률은 몇 %라고 느끼나요?","지금 바로 할 수 있는 5분짜리 대비 행동은 뭘까요?"
   ]}
 ];
 const CONTEXT = [
   {kw:['회사','팀','프로젝트','미팅','상사','동료'], ask:[
-    "이 상황에서 내 역할과 책임을 한 문장으로 정리하면?",
-    "상대가 이해하길 바라는 핵심 메시지는 무엇인가요?"
+    "이 상황에서 내 역할과 책임을 한 문장으로 정리하면?","상대가 이해하길 바라는 핵심 메시지는 무엇인가요?"
   ]},
   {kw:['가족','엄마','아빠','형','누나','동생','아이','부모'], ask:[
-    "그 사람에게 지금 바로 전하고 싶은 말 한 줄은?",
-    "경청과 경계 사이에서 내가 선택할 태도는?"
+    "그 사람에게 지금 바로 전하고 싶은 말 한 줄은?","경청과 경계 사이에서 내가 선택할 태도는?"
   ]},
   {kw:['학교','수업','시험','숙제','과제'], ask:[
-    "이번 경험에서 다음 번에 바꾸고 싶은 단 한 가지는?",
-    "오늘 배운 점을 내 언어로 한 줄로 써보면?"
+    "이번 경험에서 다음 번에 바꾸고 싶은 단 한 가지는?","오늘 배운 점을 내 언어로 한 줄로 써보면?"
   ]},
   {kw:['돈','계약','비용','예산','투자'], ask:[
-    "결정 기준(안전/수익/시간/명예) 중 지금 최우선은?",
-    "리스크를 10→7로 낮추는 즉시 행동은 뭘까요?"
+    "결정 기준(안전/수익/시간/명예) 중 지금 최우선은?","리스크를 10→7로 낮추는 즉시 행동은 뭘까요?"
   ]}
 ];
 
@@ -293,6 +268,7 @@ function genProbe(text){
 }
 
 const updateProbesDebounced = debounce(()=>{
+  if(!P1 || !P2 || !P3 || !probeChips) return;
   const text = (P1.value + " " + P2.value + " " + P3.value).trim();
   if(text.length < 30){ probeChips.innerHTML = ""; return; }
   const qs = genProbe(text);
@@ -308,53 +284,104 @@ const updateProbesDebounced = debounce(()=>{
       showToast("프로브가 추가되었어요.");
     };
     probeChips.appendChild(chip);
-  }); // <- missing bracket fixed
+  });
 }, 1000);
 
 function doProbe(){
-  if(!PROBE.bank) return;
+  if(!PROBE.bank || !questionCard) return;
   const st = currentPhase();
-  let pool = PROBE.bank.phase1;
-  if(st.done === 1) pool = PROBE.bank.phase2;
-  else if(st.done >= 2) pool = PROBE.bank.phase3;
-  const q = pool[Math.floor(Math.random()*pool.length)] || PROBE.bank.followups[Math.floor(Math.random()*PROBE.bank.followups.length)] || "조금 더 풀어줄 수 있을까요?";
+  let pool = PROBE.bank.phase1 || [];
+  if(st.done === 1) pool = PROBE.bank.phase2 || [];
+  else if(st.done >= 2) pool = PROBE.bank.phase3 || [];
+  const q = pool[Math.floor(Math.random()*pool.length)] || (PROBE.bank.followups||[])[Math.floor(Math.random()*(PROBE.bank.followups||[]).length)] || "조금 더 풀어줄 수 있을까요?";
   questionCard.textContent = q;
   showToast("프로브 질문이 추가되었어요.");
 }
 
-function doSave(){
+function currentPhase(){
+  const c1 = (P1?.value.trim().length >= 70);
+  const c2 = (P2?.value.trim().length >= 70);
+  const c3 = (P3?.value.trim().length >= 70);
+  const done = [c1,c2,c3].filter(Boolean).length;
+  return {done, c1, c2, c3};
+}
+
+function updatePhaseUI(){
+  if(!phaseLenHint || !phaseBadge || !phaseHint) return;
   const st = currentPhase();
+  phaseLenHint.textContent = `${st.done}/3 단계 충족`;
+  phaseBadge.textContent = `${Math.max(1, st.done+1)}/3 단계`;
+  const labels = ['사건·상황 서술','감정·생각 구체화','자기 성찰 요약'];
+  phaseHint.textContent = labels[Math.min(2, st.done)];
+}
+
+// ---- Save (3-phase) ----
+function doSave(){
+  if(!(P1 && P2 && P3)) return;
   const text = (P1.value.trim()+"\n\n"+P2.value.trim()+"\n\n"+P3.value.trim()).trim();
+  if(text.length === 0){ showToast("내용을 입력해주세요."); return; }
   const totalLen = text.length;
+
   let logs = 1, score = 1.5, msg = "기록이 저장되었어요 · 장작 +1";
   if(totalLen >= 50 && totalLen < 120){ logs = 2; score = 2.5; msg = "좋아요! 장작 +2"; }
   else if(totalLen >= 120 && totalLen < 240){ logs = 3; score = 3.5; msg = "멋져요! 장작 +3"; }
   else if(totalLen >= 240){ logs = 4; score = 4.5; msg = "불꽃이 크게 타올라요! 장작 +4 ✨"; burst(); }
+
   addLogUnits(logs);
   addScore(score);
   showToast(msg);
+
+  // persist latest
+  safeSetItem('sunset_last', text);
+  const today = new Date().toISOString().slice(0,10);
+  safeSetItem('sunset_last_date', today);
+  const yp = $('#yesterdayPreview');
+  if(yp) yp.textContent = text.slice(0,20) + (text.length>20?'…':'');
+
   state.longCount = (state.longCount||0) + 1;
   updateStreak();
+
   P1.value = ''; P2.value=''; P3.value='';
   updatePhaseUI();
   updateUI();
   drawFire();
 }
 
-// ---- INIT ----
+// ---- Remote banks/config ----
+async function loadProbeBank(){
+  try{
+    const res = await fetch('probe_bank.json', {cache:'no-store'});
+    PROBE.bank = await res.json();
+  }catch(e){
+    PROBE.bank = {phase1:[], phase2:[], phase3:[], followups:["조금 더 풀어줄 수 있을까요?"]};
+  }
+}
+
+// ---- Init ----
 async function init(){
+  // Load probe bank FIRST (PROBE is defined above)
   await loadProbeBank();
+
+  // Load config
   try {
-    const res = await fetch('campfire_growth_config.json');
+    const res = await fetch('campfire_growth_config.json', {cache:'no-store'});
     CFG = await res.json();
   } catch(e){
     CFG = { levels: [] };
   }
+
+  // Restore state
   const saved = safeGetItem('sunset_state');
-  if(saved){ state = {...state, ...JSON.parse(saved)}; }
+  if(saved){ try { state = {...state, ...JSON.parse(saved)}; } catch(_){} }
+
   const ys = safeGetItem('sunset_yesterday');
-  if(ys) $('#yesterdayPreview').textContent = ys.slice(0, 20) + (ys.length>20?'…':'');  
-  questionCard.textContent = QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
+  const yp = $('#yesterdayPreview');
+  if(ys && yp) yp.textContent = ys.slice(0, 20) + (ys.length>20?'…':'');
+
+  if(questionCard) {
+    questionCard.textContent = QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
+  }
+
   updateUI();
   drawFire();
   registerSW();
@@ -362,12 +389,35 @@ async function init(){
 }
 
 function maybeShowDockBanner(){
-  if(!state.installed){
-    $('#dockBanner').classList.add('show');
-  }
+  const banner = $('#dockBanner');
+  if(!banner) return;
+  if(!state.installed){ banner.classList.add('show'); }
+  else { banner.classList.remove('show'); }
 }
 
-// ---- DOMContentLoaded: bind everything safely ----
+// ---- Mini Router (data-nav / hash) ----
+const PAGES = {}; // filled after DOM ready
+function showPage(hash){
+  const key = (hash && PAGES[hash]) ? hash : '#/write';
+  Object.values(PAGES).forEach(v => v && (v.style.display = 'none'));
+  if(PAGES[key]) PAGES[key].style.display = 'block';
+}
+function bindNav(){
+  document.querySelectorAll('button[data-nav]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const to = btn.getAttribute('data-nav');
+      if (to) {
+        location.hash = to;
+        showPage(to);
+      }
+    });
+  });
+  window.addEventListener('hashchange', ()=> showPage(location.hash));
+  showPage(location.hash);
+}
+
+// ---- DOMContentLoaded ----
 document.addEventListener('DOMContentLoaded', () => {
   // Assign elements
   journal = $('#journal');
@@ -391,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
   probeChips = document.getElementById('probeChips');
   saveBtn    = document.getElementById('saveBtn');
 
-  // PWA install UI (safe bind)
+  // PWA install UI
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -403,15 +453,17 @@ document.addEventListener('DOMContentLoaded', () => {
     installBtn.addEventListener('click', async ()=>{
       if(!deferredPrompt) return;
       deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if(outcome === 'accepted'){
-        showToast("Dock 보너스! 장작 +1");
-        addLogUnits(1);
-        state.installed = true;
-        saveState();
-        const banner = $('#dockBanner');
-        if(banner) banner.classList.remove('show');
-      }
+      try {
+        const { outcome } = await deferredPrompt.userChoice;
+        if(outcome === 'accepted'){
+          showToast("Dock 보너스! 장작 +1");
+          addLogUnits(1);
+          state.installed = true;
+          saveState();
+          const banner = $('#dockBanner');
+          if(banner) banner.classList.remove('show');
+        }
+      } catch(_) {}
       deferredPrompt = null;
     });
   }
@@ -422,9 +474,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const len = journal.value.length;
       if(lengthHint){
         let msg = len + "자";
-        if(len>0 && len < 50) msg += " · 조금 더 풀어서 써볼까요?";
-        else if(len>=50 && len<200) msg += " · 좋아요, 디테일을 더!";
-        else if(len>=80) msg += " · 좋아요! 불꽃 업그레이드 보상 대상(≥80자)";
+        if(len>0 && len < 70) msg += " · 조금 더 구체적으로 적어볼까요?";
+        else if(len>=70 && len<140) msg += " · 좋아요, 디테일을 더!";
+        else if(len>=140) msg += " · 좋아요! 불꽃 업그레이드 보상 대상(≥140자)";
         lengthHint.textContent = msg;
       }
       drawFire(len);
@@ -432,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const nextQ = $('#nextQ');
-  if(nextQ){
+  if(nextQ && questionCard){
     nextQ.addEventListener('click', ()=>{
       questionCard.textContent = QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
     });
@@ -440,25 +492,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Save / Share
   if(saveBtn){
-    // remove inline onclick if existed
     saveBtn.onclick = null;
     saveBtn.addEventListener('click', ()=>{
-      // If using 3-phase editor:
-      if(P1 && P2 && P3){
-        doSave();
-        return;
-      }
-      // fallback: single textarea mode
+      if(P1 && P2 && P3){ doSave(); return; }
       if(!journal) return;
       const text = journal.value.trim();
       if(text.length === 0){ showToast("내용을 입력해주세요."); return; }
       const len = text.length;
-      if(len < 50){ addLogUnits(0.5); addScore(1); showToast("짧은 기록 · 장작 +0.5"); }
-      else if(len < 80){ addLogUnits(2); addScore(2); showToast("좋아요! 장작 +2"); }
-      else { addLogUnits(3); addScore(3); showToast("장작이 가득 쌓였습니다! ✨"); burst(); state.longCount += 1; }
+      if(len < 70){ addLogUnits(1); addScore(1.5); showToast("짧은 기록 · 장작 +1"); }
+      else if(len < 140){ addLogUnits(2); addScore(2.5); showToast("좋아요! 장작 +2"); }
+      else { addLogUnits(3); addScore(3.5); showToast("장작이 가득 쌓였습니다! ✨"); burst(); state.longCount += 1; }
       safeSetItem('sunset_last', text);
       const today = new Date().toISOString().slice(0,10);
-      localStorage.setItem('sunset_last_date', today);
+      safeSetItem('sunset_last_date', today);
       const yp = $('#yesterdayPreview');
       if(yp) yp.textContent = text.slice(0,20) + (text.length>20?'…':'');
       updateStreak();
@@ -467,9 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
       updateUI();
       drawFire();
     });
-
-    // touch mirror
-    saveBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); saveBtn.click(); });
+    // touch mirror (선택)
+    saveBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); saveBtn.click(); }, {passive:false});
   }
 
   const shareBtn = document.getElementById('shareBtn');
@@ -506,18 +551,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Phase inputs
   if(P1 && P2 && P3){
-    ['input'].forEach(evt=>{
-      [P1,P2,P3].forEach(el=> el.addEventListener(evt, ()=>{
-        updatePhaseUI();
-        const len = el.value.trim().length;
-        if(len>0 && len<70 && lengthHint){
-          lengthHint.textContent = `${len}자 · 조금 더 구체적으로 적어볼까요?`;
-        }
-        drawFire(P1.value.length + P2.value.length + P3.value.length);
-      }));
-    });
-    // Probes
     [P1,P2,P3].forEach(el=>{
+      el.addEventListener('input', ()=>{
+        updatePhaseUI();
+        const totalLen = (P1.value.length + P2.value.length + P3.value.length);
+        drawFire(totalLen);
+      });
       el.addEventListener('input', updateProbesDebounced);
       el.addEventListener('blur', updateProbesDebounced);
     });
@@ -526,27 +565,14 @@ document.addEventListener('DOMContentLoaded', () => {
     probeBtn.addEventListener('click', ()=>doProbe());
   }
 
-  // ✅ 안전한 전역 위임 (재호출/루프 없음)
-document.addEventListener('click', (e) => {
-  const el = e.target.closest('button, .btn');
-  if (!el) return;
+  // Mini Router hookup
+  PAGES['#/write'] = document.getElementById('page-write');
+  PAGES['#/campfire'] = document.getElementById('page-campfire');
+  bindNav();
 
-  // 개별 리스너로 이미 처리하는 버튼들은 그냥 통과
-  const managed = new Set(['saveBtn','shareBtn','nextQ','probeBtn','installBtn','shareInBtn','dockOk']);
-  if (managed.has(el.id)) return;
-
-  // 별도 위임이 필요한 커스텀 버튼만 여기서 처리 (※ 절대 el.click() 다시 호출하지 말기)
-});
-
-// 터치에서 click 합성은 보통 불필요. 정말 필요할 때만 켜세요.
-// document.addEventListener('touchend', (e) => {
-//   const el = e.target.closest('button, .btn');
-//   if (!el) return;
-//   // e.preventDefault(); // 중복 클릭 위험
-//   // el.dispatchEvent(new MouseEvent('click', {bubbles:false}));
-// });
-
-  // Init flows
+  // Init flows (after DOM ready)
   setTimeout(()=> loadStep(0), 0);
   init();
 });
+
+// ===== End of app.js =====
