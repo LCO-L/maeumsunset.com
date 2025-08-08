@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>마음썬셋</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root{--bg:#0b0e10;--card:#12161c;--fg:#e9edf1;--muted:#8a98a9;--accent:#ffa84d;}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Apple SD Gothic Neo, sans-serif;}
+    header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;position:sticky;top:0;background:linear-gradient(180deg, rgba(11,14,16,.98), rgba(11,14,16,.86) 70%, rgba(11,14,16,0));backdrop-filter:blur(8px);z-index:10;border-bottom:1px solid rgba(255,255,255,.04)}
+    .badges{display:flex;gap:8px;font-size:.9rem;color:var(--muted)}
+    nav{display:flex;gap:8px}
+    nav button{background:#1a212a;color:var(--fg);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:8px 12px;cursor:pointer}
+    nav button[aria-current="page"]{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,168,77,.25) inset}
+    main{padding:16px;max-width:880px;margin:0 auto}
+    section.card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;margin-bottom:16px}
+    #questionRow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    #questionCard{font-weight:600}
+    #journal{width:100%;min-height:220px;background:#0f141a;border:1px solid rgba(255,255,255,.08);color:var(--fg);border-radius:12px;padding:14px 14px 56px;outline:none;resize:vertical}
+    #lenWrap{height:6px;background:#0d1217;border-radius:999px;margin-top:8px;overflow:hidden}
+    #lenBar{height:100%;width:0%;background:linear-gradient(90deg, #ffd89b, #ffa84d);transition:width .3s}
+    .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .btn{background:var(--accent);color:#1a1004;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600}
+    #probeChips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{background:#1a212a;border:1px solid rgba(255,255,255,.08);padding:6px 10px;border-radius:999px;cursor:pointer}
+    #page-campfire{display:none}
+    #campfire{width:100%;height:340px;display:block;background:#0b0e10;border:1px solid rgba(255,255,255,.06);border-radius:16px}
+    #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);padding:10px 14px;background:#202832;border:1px solid rgba(255,255,255,.08);border-radius:10px;opacity:0;transition:opacity .2s, transform .2s;pointer-events:none}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+    #dockBanner{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);display:none;background:#1b222c;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;gap:8px}
+    #dockBanner.show{display:flex}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="badges">
+      <span id="levelHint">L0 · 불씨</span>
+      <span id="scoreHint">score 0</span>
+      <span id="streakBadge">연속 0일</span>
+      <span id="campfireGate">Campfire 입장권: 기록 0/3</span>
+    </div>
+    <nav>
+      <button id="tabWrite" data-nav="#/write" aria-current="page">일기</button>
+      <button id="tabCamp" data-nav="#/campfire">캠프파이어</button>
+      <button id="installBtn" style="display:none">Dock에 추가</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="page-write" class="card">
+      <div class="row" id="questionRow">
+        <div id="questionCard">오늘 마음을 가장 흔든 장면은 무엇이었나요?</div>
+        <button id="nextQ" class="btn" type="button">다른 질문</button>
+      </div>
+      <div style="height:8px"></div>
+      <textarea id="journal" placeholder="오늘 하루 있었던 일과 느낀 점을 자유롭게 적어보세요..."></textarea>
+      <div id="lenWrap"><div id="lenBar"></div></div>
+      <div class="row" style="margin-top:10px">
+        <div id="lengthHint">0자</div>
+        <div>
+          <button id="probeBtn" class="btn" type="button" style="background:#ffd89b">도움질문</button>
+          <button id="saveBtn" class="btn" type="button">저장</button>
+        </div>
+      </div>
+      <div id="probeChips" style="margin-top:10px"></div>
+      <div id="phaseLenHint" style="display:none"></div>
+      <div id="phaseBadge" style="display:none"></div>
+      <div id="phaseHint" style="display:none"></div>
+    </section>
+
+    <section id="page-campfire" class="card">
+      <canvas id="campfire" width="880" height="340"></canvas>
+      <div class="row" style="margin-top:10px">
+        <button id="shareBtn" class="btn" type="button">캠프 밝혀보기</button>
+        <button id="shareInBtn" class="btn" type="button" style="background:#ffd89b">공유로 열기</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="dockBanner">
+    <div>도크에 추가하면 보너스 장작 +1 🔥</div>
+    <button id="dockOk" class="btn" type="button" style="background:#ffd89b">닫기</button>
+  </div>
+  <div id="toast">토스트</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
