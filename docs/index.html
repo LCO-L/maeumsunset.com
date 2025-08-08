@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>마음썬셋 · Campfire</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root{--bg:#0b0e10;--card:#12161c;--fg:#e9edf1;--muted:#8a98a9;--accent:#ffa84d;--heart:#ff5a6a}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Apple SD Gothic Neo, sans-serif;}
+    header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;position:sticky;top:0;background:linear-gradient(180deg, rgba(11,14,16,.98), rgba(11,14,16,.86) 70%, rgba(11,14,16,0));backdrop-filter:blur(8px);z-index:10;border-bottom:1px solid rgba(255,255,255,.04)}
+    .badges{display:flex;gap:8px;font-size:.9rem;color:var(--muted)}
+    nav{display:flex;gap:8px}
+    nav button{background:#1a212a;color:var(--fg);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:8px 12px;cursor:pointer}
+    nav button[aria-current="page"]{border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,168,77,.25) inset}
+    main{padding:16px;max-width:940px;margin:0 auto}
+    section.card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;margin-bottom:16px}
+    #questionRow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    #questionCard{font-weight:600}
+    #journal{width:100%;min-height:220px;background:#0f141a;border:1px solid rgba(255,255,255,.08);color:var(--fg);border-radius:12px;padding:14px 14px 56px;outline:none;resize:vertical}
+    #lenWrap{height:6px;background:#0d1217;border-radius:999px;margin-top:8px;overflow:hidden}
+    #lenBar{height:100%;width:0%;background:linear-gradient(90deg, #ffd89b, #ffa84d);transition:width .3s}
+    .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .btn{background:var(--accent);color:#1a1004;border:none;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600}
+    .btn.ghost{background:#1a212a;color:var(--fg);border:1px solid rgba(255,255,255,.08)}
+    #probeChips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{background:#1a212a;border:1px solid rgba(255,255,255,.08);padding:6px 10px;border-radius:999px;cursor:pointer}
+    #campGrid{display:grid;grid-template-columns:repeat(3, 1fr);gap:12px}
+    .camp{background:#0f141a;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+    .camp h4{margin:0;font-size:0.95rem;color:var(--muted)}
+    .camp .likes{font-size:.9rem;color:var(--heart)}
+    .cards{display:grid;grid-template-columns:repeat(3, 1fr);gap:12px}
+    .cardItem{background:#10161d;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;min-height:120px;display:flex;flex-direction:column;gap:8px}
+    .likeBtn{background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:6px 10px;color:var(--heart);cursor:pointer;align-self:flex-end}
+    #page-campfire{display:none}
+    #campfire{width:100%;height:340px;display:block;background:#0b0e10;border:1px solid rgba(255,255,255,.06);border-radius:16px}
+    #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);padding:10px 14px;background:#202832;border:1px solid rgba(255,255,255,.08);border-radius:10px;opacity:0;transition:opacity .2s, transform .2s;pointer-events:none;z-index:9999}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+    #dockBanner{position:fixed;bottom:86px;left:50%;transform:translateX(-50%);display:none;background:#1b222c;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px;gap:8px}
+    #dockBanner.show{display:flex}
+    .subtle{color:var(--muted);font-size:.92rem}
+  
+/* ---- Premium Buttons ---- */
+.btn{
+  position:relative; overflow:hidden;
+  background:linear-gradient(180deg,#ffd89b,#ffa84d);
+  color:#23160a; border:none; border-radius:14px;
+  padding:12px 16px; font-weight:800; letter-spacing:.2px; cursor:pointer;
+  box-shadow:0 6px 14px rgba(255,168,77,.22), inset 0 1px 0 rgba(255,255,255,.35);
+  transition: transform .06s ease, box-shadow .2s ease;
+}
+.btn:hover{ transform: translateY(-1px); box-shadow:0 10px 20px rgba(255,168,77,.28), inset 0 1px 0 rgba(255,255,255,.4);}
+.btn:active{ transform: translateY(0); box-shadow:0 4px 10px rgba(255,168,77,.2) inset; }
+.btn.ghost{
+  background:#161d26; color:#e9edf1; border:1px solid rgba(255,255,255,.12);
+  box-shadow:none; font-weight:700;
+}
+.btn.ghost:hover{ border-color:rgba(255,255,255,.22);}
+
+/* ---- Campfire tiles ---- */
+.camp{
+  position:relative;
+  background: radial-gradient(120% 80% at 50% 100%, rgba(255,168,77,.08), transparent 60%), #0f141a;
+  border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:12px; cursor:pointer;
+  display:flex; flex-direction:column; gap:10px; isolation:isolate;
+}
+.camp .pit{ position:relative; height:140px; border-radius:12px;
+  background:linear-gradient(180deg,#0d1217, #0a0d11);
+  border:1px solid rgba(255,255,255,.05);
+  overflow:hidden;
+}
+.camp .logs{ position:absolute; left:50%; bottom:10px; width:120px; height:18px; transform:translateX(-50%);}
+.camp .logs::before,.camp .logs::after{
+  content:""; position:absolute; width:120px; height:14px; left:0; top:2px;
+  background:linear-gradient(90deg,#6b4e3a,#8c6348 60%,#6b4e3a);
+  border-radius:9px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));
+}
+.camp .logs::after{ transform:rotate(22deg); top:-2px}
+
+/* Flame (pure CSS) */
+.flame{ position:absolute; left:50%; bottom:32px; width:120px; height:160px; transform:translateX(-50%); }
+.flame i{
+  position:absolute; display:block; left:50%; bottom:0; transform:translateX(-50%);
+  width:80px; height:110px; border-radius:60% 60% 40% 40%;
+  background:radial-gradient(60% 70% at 50% 35%, rgba(255,240,210,.9), rgba(255,180,90,.95) 40%, rgba(255,120,40,.9) 70%, rgba(255,90,30,.8) 100%);
+  filter:blur(0.4px); opacity:.9; animation: rise 2.8s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(255,160,70,.35), 0 0 70px rgba(255,120,30,.2);
+}
+.flame i:nth-child(2){ width:60px; height:90px; animation-duration:2.1s; animation-delay:.2s; opacity:.85}
+.flame i:nth-child(3){ width:46px; height:70px; animation-duration:1.6s; animation-delay:.4s; opacity:.8}
+.flame::after{
+  content:""; position:absolute; left:50%; bottom:-2px; transform:translateX(-50%);
+  width:140px; height:30px; border-radius:50%;
+  background:radial-gradient(60% 80% at 50% 40%, rgba(255,180,90,.25), transparent 70%);
+  filter:blur(6px);
+}
+
+@keyframes rise{
+  0%{ transform:translate(-50%,0) scale(1) rotate(0deg); }
+  50%{ transform:translate(-50%,-6px) scale(1.02) rotate(1deg); }
+  100%{ transform:translate(-50%,0) scale(1) rotate(0deg); }
+}
+
+/* Card item polish */
+.cardItem{ position:relative; }
+.cardItem::after{
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+/* Like button subtle glow */
+.likeBtn{ border:1px solid rgba(255,90,106,.35); color:#ff5a6a; border-radius:10px; }
+.likeBtn:hover{ box-shadow:0 0 0 2px rgba(255,90,106,.18) inset; }
+
+
+/* --- HQ Campfire canvas pits --- */
+.campPitWrap{position:relative; background:#0f141a; border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:12px;}
+.campPit{position:relative; height:240px; border-radius:14px; background:radial-gradient(120% 100% at 50% 100%, rgba(60,50,40,.3), rgba(15,18,22,.85) 60%), #0b0e10; overflow:hidden;}
+.stoneRing{position:absolute; left:50%; bottom:26px; transform:translateX(-50%); width:86%; height:44px; border-radius:999px;
+  background:radial-gradient(120% 120% at 50% 35%, #6b6f76, #3f444b 56%, #2c3239 66%, rgba(0,0,0,.2) 100%);
+  box-shadow: inset 0 2px 3px rgba(255,255,255,.06), 0 4px 22px rgba(0,0,0,.45);
+}
+.logsBar{position:absolute; left:50%; bottom:42px; transform:translateX(-50%) rotate(8deg); width:240px; height:16px; border-radius:10px;
+  background:linear-gradient(90deg, #6b4e3a, #8c6348 60%, #6b4e3a); filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));
+}
+.logsBar::after{content:""; position:absolute; inset:0; transform:rotate(-18deg); border-radius:10px; background:linear-gradient(90deg, #6b4e3a, #8c6348 60%, #6b4e3a)}
+.campHeader{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px}
+.campStats{color:#ffb47a; font-weight:700}
+canvas.campfire{display:block; width:100%; height:240px}
+
+</style>
+</head>
+<body>
+  <header>
+    <div class="badges">
+      <span id="levelHint">L0 · 불씨</span>
+      <span id="scoreHint">score 0</span>
+      <span id="streakBadge">연속 0일</span>
+      <span id="campfireGate">Campfire 입장권: 기록 0/3</span>
+    </div>
+    <nav>
+      <button id="tabWrite" data-nav="#/write" aria-current="page">질문답변</button>
+      <button id="tabCamp" data-nav="#/campfire">캠프파이어</button>
+      <button id="installBtn" style="display:none">Dock에 추가</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Write -->
+    <section id="page-write" class="card">
+      <div class="row" id="questionRow">
+        <div>
+          <div class="subtle">오늘의 질문</div>
+          <div id="questionCard" style="font-weight:700">…</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button id="nextQ" class="btn ghost" type="button">다른 질문</button>
+          <button id="shareBtn" class="btn ghost" type="button">캠프 밝혀보기</button>
+        </div>
+      </div>
+      <div style="height:8px"></div>
+      <textarea id="journal" placeholder="이 질문에 대해 자유롭게 적어보세요… (저장하면 오늘의 캠프파이어로 배포됩니다)"></textarea>
+      <div id="lenWrap"><div id="lenBar"></div></div>
+      <div class="row" style="margin-top:10px">
+        <div id="lengthHint">0자</div>
+        <div>
+          <button id="probeBtn" class="btn ghost" type="button">도움질문</button>
+          <button id="saveBtn" class="btn" type="button">저장</button>
+        </div>
+      </div>
+      <div id="probeChips" style="margin-top:10px"></div>
+    </section>
+
+    <!-- Campfire -->
+    <section id="page-campfire" class="card">
+      <div class="row">
+        <h3 style="margin:0">오늘의 캠프파이어</h3>
+        <div class="subtle" id="campTitle">…</div>
+      </div>
+      <div id="campGrid" style="margin-top:10px"></div>
+      <div style="height:14px"></div>
+      <div class="row">
+        <h3 style="margin:0">다른 질문 살펴보기</h3>
+        <button id="exploreMore" class="btn ghost" type="button">새로고침</button>
+      </div>
+      <div id="exploreGrid" class="cards" style="margin-top:10px"></div>
+    </section>
+  </main>
+
+  <div id="dockBanner">
+    <div>도크에 추가하면 보너스 장작 +1 🔥</div>
+    <button id="dockOk" class="btn" type="button" style="background:#ffd89b">닫기</button>
+  </div>
+  <div id="toast">토스트</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
