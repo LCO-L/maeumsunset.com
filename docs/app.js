@@ -79,7 +79,7 @@ async function init(){
   registerSW();
   maybeShowDockBanner();
 }
-init();
+
 
 function saveState(){
   safeSetItem('sunset_state', JSON.stringify(state));
@@ -608,4 +608,7 @@ document.addEventListener('touchend', (e)=>{
   if(!el) return;
   e.preventDefault();
   el.dispatchEvent(new Event('click', {bubbles:true}));
+});
+document.addEventListener('DOMContentLoaded', () => {
+  init();
 });
