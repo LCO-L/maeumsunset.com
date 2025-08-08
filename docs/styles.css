@@ -1,0 +1,5 @@
+/* Extra mobile styles */
+:root { --safe: env(safe-area-inset-bottom); }
+@media (min-width: 768px){
+  .app { max-width: 520px; margin: 0 auto; }
+}
