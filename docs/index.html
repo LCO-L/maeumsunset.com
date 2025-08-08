@@ -841,4 +841,324 @@
         function updateEmotionIndicator(emotion) {
             const indicator = document.getElementById('emotionIndicator');
             const emotionLabels = {
-                happy: '
+                happy: '기쁨',
+                sad: '슬픔',
+                calm: '평온',
+                energetic: '활기',
+                nostalgic: '그리움'
+            };
+            
+            const emotionEmojis = {
+                happy: '😊',
+                sad: '😢',
+                calm: '😌',
+                energetic: '⚡',
+                nostalgic: '🥀'
+            };
+            
+            indicator.innerHTML = `
+                <span class="emotion-tag">
+                    ${emotionEmojis[emotion]} ${emotionLabels[emotion]}
+                </span>
+                <span class="emotion-tag">
+                    ${appState.weather?.description} 날씨
+                </span>
+            `;
+        }
+
+        function showMusicRecommendation(emotion, tracks) {
+            const musicRec = document.getElementById('musicRecommendation');
+            const musicSubtitle = document.getElementById('musicSubtitle');
+            const musicTracks = document.getElementById('musicTracks');
+            
+            const emotionLabels = {
+                happy: '기쁨',
+                sad: '슬픔', 
+                calm: '평온',
+                energetic: '활기',
+                nostalgic: '그리움'
+            };
+            
+            musicSubtitle.textContent = `${emotionLabels[emotion]}과 ${appState.weather?.description} 날씨에 어울리는 음악`;
+            
+            musicTracks.innerHTML = tracks.map(track => `
+                <div class="music-track" onclick="playTrack('${track.name}', '${track.artist}')">
+                    <div class="track-artwork">${track.emoji}</div>
+                    <div class="track-info">
+                        <div class="track-name">${track.name}</div>
+                        <div class="track-artist">${track.artist}</div>
+                    </div>
+                    <button class="play-btn">▶</button>
+                </div>
+            `).join('');
+            
+            musicRec.classList.add('show');
+        }
+
+        function playTrack(name, artist) {
+            const nowPlaying = document.getElementById('nowPlaying');
+            const nowPlayingInfo = document.getElementById('nowPlayingInfo');
+            
+            appState.currentlyPlaying = { name, artist };
+            nowPlayingInfo.textContent = `${name} - ${artist}`;
+            nowPlaying.classList.add('show');
+            
+            showToast(`🎵 "${name}" 재생 중...`);
+            
+            // 실제로는 Spotify Web Playback SDK 등을 사용하여 음악 재생
+            simulateAudioPlayback();
+        }
+
+        function simulateAudioPlayback() {
+            // 음악 재생 시뮬레이션 (3분 후 자동 종료)
+            setTimeout(() => {
+                const nowPlaying = document.getElementById('nowPlaying');
+                nowPlaying.classList.remove('show');
+                appState.currentlyPlaying = null;
+                showToast("음악 재생이 완료되었습니다");
+            }, 10000); // 10초 후 종료 (데모용)
+        }
+
+        function shareEntry() {
+            const text = document.getElementById('mainTextarea').value;
+            if (text.length < 10) {
+                showToast("공유할 내용을 먼저 작성해주세요");
+                return;
+            }
+            
+            const shareData = {
+                emotion: appState.currentEmotion,
+                weather: appState.weather?.description,
+                location: appState.location?.city,
+                music: appState.currentlyPlaying?.name
+            };
+            
+            showToast(`📤 ${shareData.weather} 날씨, ${shareData.emotion} 감정의 일기가 공유되었습니다`);
+        }
+
+        // 토스트 메시지
+        function showToast(message) {
+            // 기존 토스트 제거
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toastSlide 0.3s ease-out reverse';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // 키보드 단축키
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                analyzeAndRecommend();
+            }
+            
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                shareEntry();
+            }
+        });
+
+        // 실시간 타이핑 감지
+        document.getElementById('mainTextarea').addEventListener('input', function() {
+            const length = this.value.length;
+            
+            // 길이에 따른 시각적 피드백
+            if (length > 100) {
+                this.style.borderColor = '#ff6b35';
+                this.style.background = 'rgba(255,107,53,0.1)';
+            } else {
+                this.style.borderColor = 'rgba(255,255,255,0.2)';
+                this.style.background = 'rgba(255,255,255,0.05)';
+            }
+        });
+
+        // 날씨 기반 테마 전환 (데모용 - 클릭으로 날씨 변경)
+        document.getElementById('weatherIcon').addEventListener('click', function() {
+            const weatherTypes = ['sunny', 'rainy', 'cloudy', 'snowy'];
+            const currentIndex = weatherTypes.indexOf(appState.weather?.type || 'sunny');
+            const nextIndex = (currentIndex + 1) % weatherTypes.length;
+            const nextWeather = weatherTypes[nextIndex];
+            
+            appState.weather = {
+                type: nextWeather,
+                temperature: Math.floor(Math.random() * 30) + 5,
+                description: getWeatherDescription(nextWeather)
+            };
+            
+            updateWeatherUI();
+            showToast(`날씨가 ${appState.weather.description}로 변경되었습니다`);
+        });
+
+        // 감정별 배경음악 (실제로는 Web Audio API 사용)
+        const ambientSounds = {
+            rainy: 'rain-sounds.mp3',
+            sunny: 'birds-chirping.mp3', 
+            snowy: 'wind-sounds.mp3',
+            cloudy: 'ambient-nature.mp3'
+        };
+
+        function playAmbientSound(weatherType) {
+            // 실제로는 Web Audio API로 배경음 재생
+            console.log(`Playing ambient sound for ${weatherType}`);
+        }
+
+        // 위치 기반 추가 기능 (데모용)
+        function updateContextualPrompts() {
+            const prompts = {
+                home: "집에서 편안하게, 오늘 하루는 어땠나요?",
+                cafe: "카페의 따뜻한 분위기 속에서 마음을 정리해보세요",
+                office: "바쁜 하루 중 잠깐의 여유, 지금 기분은 어떤가요?",
+                park: "자연 속에서 깊게 숨을 쉬며 마음을 들여다보세요"
+            };
+            
+            // 실제로는 GPS나 Wi-Fi 기반으로 위치 감지
+        }
+
+        // 스마트 음악 큐레이션 (실제로는 AI 기반)
+        function generateSmartPlaylist(emotion, weather, timeOfDay, location) {
+            const context = {
+                emotion,
+                weather,
+                timeOfDay: new Date().getHours(),
+                location: location || 'home'
+            };
+            
+            // 복합적 요소를 고려한 음악 추천
+            let playlist = [];
+            
+            if (context.weather === 'rainy' && context.emotion === 'nostalgic') {
+                playlist = [
+                    { name: "The Night We Met", artist: "Lord Huron", emoji: "🌧️" },
+                    { name: "Mad World", artist: "Gary Jules", emoji: "🌫️" },
+                    { name: "Hurt", artist: "Johnny Cash", emoji: "💔" }
+                ];
+            } else if (context.weather === 'sunny' && context.emotion === 'happy') {
+                playlist = [
+                    { name: "Here Comes the Sun", artist: "The Beatles", emoji: "☀️" },
+                    { name: "Good as Hell", artist: "Lizzo", emoji: "💪" },
+                    { name: "Walking on Sunshine", artist: "Katrina & The Waves", emoji: "🌈" }
+                ];
+            }
+            
+            return playlist.length > 0 ? playlist : musicDatabase[emotion];
+        }
+
+        // 일기 저장 및 분석 히스토리
+        let entryHistory = [];
+
+        function saveEntryToHistory(text, emotion, weather, music) {
+            const entry = {
+                id: Date.now(),
+                text: text,
+                emotion: emotion,
+                weather: weather,
+                music: music,
+                timestamp: new Date().toISOString(),
+                location: appState.location
+            };
+            
+            entryHistory.push(entry);
+            
+            // 로컬 스토리지에 저장 (실제로는 서버에 저장)
+            try {
+                localStorage.setItem('sunset_entries', JSON.stringify(entryHistory));
+            } catch (e) {
+                console.log('History save failed');
+            }
+        }
+
+        function loadEntryHistory() {
+            try {
+                const saved = localStorage.getItem('sunset_entries');
+                if (saved) {
+                    entryHistory = JSON.parse(saved);
+                }
+            } catch (e) {
+                console.log('History load failed');
+            }
+        }
+
+        // 감정 패턴 분석
+        function analyzeEmotionPatterns() {
+            if (entryHistory.length < 5) return null;
+            
+            const emotionCounts = {};
+            const weatherEmotions = {};
+            
+            entryHistory.forEach(entry => {
+                emotionCounts[entry.emotion] = (emotionCounts[entry.emotion] || 0) + 1;
+                
+                const key = `${entry.weather.type}_${entry.emotion}`;
+                weatherEmotions[key] = (weatherEmotions[key] || 0) + 1;
+            });
+            
+            return {
+                mostCommonEmotion: Object.keys(emotionCounts).reduce((a, b) => 
+                    emotionCounts[a] > emotionCounts[b] ? a : b),
+                emotionCounts,
+                weatherEmotions
+            };
+        }
+
+        // 초기 히스토리 로드
+        loadEntryHistory();
+
+        // 페이지 언로드 시 현재 작업 저장
+        window.addEventListener('beforeunload', function() {
+            const currentText = document.getElementById('mainTextarea').value;
+            if (currentText.length > 20) {
+                saveEntryToHistory(
+                    currentText, 
+                    appState.currentEmotion || 'unknown',
+                    appState.weather,
+                    appState.currentlyPlaying
+                );
+            }
+        });
+
+        // 접근성 개선
+        document.addEventListener('keydown', function(e) {
+            // Tab 키로 네비게이션 개선
+            if (e.key === 'Tab') {
+                // 자동 포커스 관리
+            }
+            
+            // ESC 키로 음악 추천 닫기
+            if (e.key === 'Escape') {
+                const musicRec = document.getElementById('musicRecommendation');
+                if (musicRec.classList.contains('show')) {
+                    musicRec.classList.remove('show');
+                }
+            }
+        });
+
+        // 성능 최적화 - 날씨 애니메이션 제한
+        let animationActive = true;
+        
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                animationActive = false;
+                // 애니메이션 일시정지
+            } else {
+                animationActive = true;
+                // 애니메이션 재개
+            }
+        });
+    </script>
+</body>
+</html>
