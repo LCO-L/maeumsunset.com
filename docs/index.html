@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>캠프파이어</title>
+  <style>
+    :root{--bg:#0b0f14;--card:#11171f;--ink:#eaeef3;--inkd:#b6c2d0;--ring:#2b3442;--accent:#ffc27a}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(120% 100% at 50% 0%,#0f141b,#0a0d12 60%),var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif}
+    .top{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(10,14,18,.6);backdrop-filter:blur(8px)}
+    .container{max-width:980px;margin:22px auto;padding:0 16px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px;margin-bottom:14px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    textarea{width:100%;min-height:110px;background:#0c1117;color:var(--ink);border:1px solid var(--ring);border-radius:12px;padding:12px}
+    .btn{appearance:none;border:1px solid var(--ring);background:linear-gradient(180deg,#1c2632,#141b24);color:var(--ink);padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer}
+    .ghost{background:transparent}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:760px){.grid{grid-template-columns:repeat(3,1fr)}}
+    .pit{position:relative;border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:10px;background:linear-gradient(180deg,rgba(18,23,30,.7),rgba(12,16,22,.8))}
+    .pitHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+    .stat{color:var(--accent);font-weight:800}
+    .svgWrap{position:relative;height:220px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.06);background:radial-gradient(120% 100% at 50% 100%,rgba(60,50,40,.25),rgba(10,12,16,.9) 60%),#0b0e10}
+    .stone{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);width:86%;height:44px;border-radius:999px;background:radial-gradient(120% 120% at 50% 35%,#6b6f76,#3f444b 56%,#2c3239 66%,rgba(0,0,0,.2) 100%)}
+    .logs{position:absolute;left:50%;bottom:40px;transform:translateX(-50%) rotate(10deg);width:240px;height:16px;border-radius:10px;background:linear-gradient(90deg,#6b4e3a,#8c6348 60%,#6b4e3a)}
+    .title{font-weight:800}
+    .hidden{display:none}
+    .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#111821;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;transition:.2s;pointer-events:none}
+    .toast.show{opacity:1}
+  </style>
+</head>
+<body>
+<header class="top"><div>🔥 캠프파이어</div><div id="date"></div></header>
+<main class="container">
+  <section class="card">
+    <textarea id="journal" placeholder="무슨 일이 있었나요? 가능한 구체적으로 적어주세요."></textarea>
+    <div class="row"><div id="len">0자</div><button class="btn" id="save">저장</button></div>
+  </section>
+
+  <section class="card" id="sectionList">
+    <div class="row"><h3 style="margin:0">오늘의 <span class="title">캠프</span></h3><button class="btn ghost" id="editTopics">주제 편집</button></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="card hidden" id="sectionRoom">
+    <div class="row">
+      <h3 id="roomTitle" style="margin:0"></h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost" id="back">목록으로</button>
+        <button class="btn ghost" id="rename">주제 바꾸기</button>
+      </div>
+    </div>
+    <div id="posts"></div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const today=()=>new Date().toISOString().slice(0,10);
+$('#date').textContent=today();
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1300);}
+function topicsLoad(){
+  const k='camp_topics:'+today();const raw=localStorage.getItem(k);
+  if(raw) return JSON.parse(raw);
+  const t=[{id:0,title:'오늘의 하이라이트'},{id:1,title:'지금 내 감정'},{id:2,title:'내가 선택할 작은 행동'}];
+  localStorage.setItem(k,JSON.stringify(t));return t;
+}
+function topicsSave(t){localStorage.setItem('camp_topics:'+today(),JSON.stringify(t));}
+let TOPICS=topicsLoad();
+
+const SVG_FIRE=(id)=>`
+<svg viewBox="0 0 200 200" width="100%" height="220" preserveAspectRatio="xMidYMax slice">
+  <defs>
+    <radialGradient id="glow${id}" cx="50%" cy="70%" r="60%">
+      <stop offset="0%" stop-color="rgba(255,240,210,.9)"/>
+      <stop offset="35%" stop-color="rgba(255,180,90,.85)"/>
+      <stop offset="70%" stop-color="rgba(255,110,40,.55)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+    </radialGradient>
+    <linearGradient id="flame${id}" x1="0" x2="0" y1="1" y2="0">
+      <stop offset="0%" stop-color="#ff7a3c"/>
+      <stop offset="50%" stop-color="#ffd27a"/>
+      <stop offset="100%" stop-color="#fff2cf"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="100" cy="160" rx="70" ry="24" fill="url(#glow${id})"/>
+  <path d="M100 165 C 60 150, 70 120, 85 95 C 60 110, 65 70, 95 55 C 85 70, 110 70, 120 40 C 140 70, 140 95, 125 110 C 150 120, 145 150, 100 165 Z" fill="url(#flame${id})"/>
+</svg>`;
+
+function renderList(){
+  const g=$('#grid');g.innerHTML='';
+  for(let i=0;i<3;i++){
+    const topic=TOPICS[i]?.title||('캠프 '+(i+1));
+    const el=document.createElement('div');el.className='pit';
+    el.innerHTML=`
+      <div class="pitHead"><div class="title">${topic}</div><div class="stat" id="stat${i}">❤️ 0 · 노트 0</div></div>
+      <div class="svgWrap">${SVG_FIRE(i)}<div class="stone"></div><div class="logs"></div></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn ghost" data-i="${i}">열기</button>
+        <button class="btn" data-write="${i}">이 캠프에 쓰기</button>
+      </div>`;
+    g.appendChild(el);
+  }
+}
+renderList();
+
+// lazy import app.js when first interaction
+let appLoaded=false, app=null;
+async function ensureApp(){
+  if(appLoaded) return app;
+  app = await import('./lazy-app.js');
+  appLoaded=true; return app;
+}
+
+document.addEventListener('click', async (e)=>{
+  const openBtn = e.target.closest('button.btn.ghost[data-i]');
+  const writeBtn = e.target.closest('button.btn[data-write]');
+  if(openBtn){ (await ensureApp()).openRoom(parseInt(openBtn.dataset.i), TOPICS, setStats, setTitle, showRoom, showList, toast); }
+  if(writeBtn){
+    const i=parseInt(writeBtn.dataset.write);
+    const text = ($('#journal')?.value||'').trim();
+    if(!text){ toast('위 입력칸에 쓰고 저장하거나, 캠프 안에서 작성해 주세요.'); (await ensureApp()).openRoom(i, TOPICS, setStats, setTitle, showRoom, showList, toast); return; }
+    (await ensureApp()).saveQuick(i, text, TOPICS, setStats, toast);
+    $('#journal').value=''; updateLen();
+  }
+});
+
+function updateLen(){ const len=($('#journal')?.value||'').length; $('#len').textContent=`${len}자`; }
+$('#journal').addEventListener('input', updateLen);
+$('#save').addEventListener('click', async ()=>{
+  const text = ($('#journal')?.value||'').trim();
+  if(!text) return toast('내용을 입력해주세요.');
+  (await ensureApp()).saveAuto(text, TOPICS, setStats, toast); $('#journal').value=''; updateLen();
+});
+
+$('#editTopics').addEventListener('click', ()=>{
+  const cur = TOPICS.map(t=>t.title).join('\n');
+  const next = prompt('세 줄로 주제를 입력하세요 (줄바꿈으로 구분)', cur);
+  if(!next) return;
+  const parts = next.split(/\r?\n/).filter(Boolean).slice(0,3);
+  while(parts.length<3) parts.push('캠프 '+(parts.length+1));
+  TOPICS = parts.map((t,i)=>({id:i,title:t.trim()})); topicsSave(TOPICS);
+  renderList(); // UI 갱신
+});
+
+// Stats updater (on demand from lazy-app)
+function setStats(i, likes, count){ const el = document.getElementById('stat'+i); if(el) el.textContent = `❤️ ${likes} · 노트 ${count}`; }
+function setTitle(txt){ document.getElementById('roomTitle').textContent = txt; }
+function showRoom(){ document.getElementById('sectionList').classList.add('hidden'); document.getElementById('sectionRoom').classList.remove('hidden'); }
+function showList(){ document.getElementById('sectionRoom').classList.add('hidden'); document.getElementById('sectionList').classList.remove('hidden'); }
+document.getElementById('back').addEventListener('click', showList);
+document.getElementById('rename').addEventListener('click', async ()=>{
+  const idx = (await ensureApp()).getCurrentIdx();
+  if(idx==null) return;
+  const cur = TOPICS[idx]?.title || '';
+  const next = prompt('캠프 주제를 입력하세요', cur);
+  if(!next) return;
+  TOPICS[idx] = {id:idx, title: next.trim()||cur}; topicsSave(TOPICS);
+  setTitle(TOPICS[idx].title); renderList();
+});
+</script>
+</body>
+</html>
