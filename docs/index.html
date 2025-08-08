@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1f1a24" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <title>SunSet · Campfire</title>
+  <style>
+    /* Inlined critical CSS for first paint; rest in styles.css */
+    :root {
+      --bg:#1f1a24; --panel:#2a2430; --text:#fff; --muted:#cfc6d9;
+      --accent:#ff8a65; --accent2:#ffd180; --ok:#8bc34a; --warn:#ffb300;
+      --radius:18px;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); margin:0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif; }
+    .app { display:flex; flex-direction:column; min-height:100vh; padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom); gap:12px; }
+    header { display:flex; align-items:center; justify-content:space-between; padding:8px 4px; }
+    .card { background: var(--panel); border-radius: var(--radius); padding:14px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+    .question { font-weight:600; color: var(--muted); line-height:1.4; }
+    .row { display:flex; gap:10px; align-items:center; }
+    .controls { display:flex; gap:8px; }
+    button, .btn {
+      appearance:none; border:none; border-radius:14px; padding:12px 14px;
+      background:linear-gradient(180deg, #ff8a65, #ff7043); color:#1f1a24; font-weight:700;
+      box-shadow: 0 8px 20px rgba(255,112,67,.35);
+    }
+    button.secondary { background:#3a3242; color:#fff; box-shadow:none; }
+    textarea {
+      width:100%; min-height: 180px; border:none; outline:none; resize:none;
+      background:#231e28; color:#fff; border-radius:14px; padding:14px; line-height:1.5; font-size:16px;
+    }
+    .hint { font-size:12px; color: var(--muted); padding-top:6px; }
+    .badge { font-size:12px; padding:4px 8px; border-radius:999px; background:#3a3242; color:#ffd180; }
+    .dock-banner { display:none; justify-content:space-between; align-items:center; gap:10px; }
+    .dock-banner.show { display:flex; }
+    canvas { width:100%; height:220px; border-radius: 18px; background: radial-gradient(ellipse at center, rgba(255,120,60,.08), rgba(0,0,0,0)); }
+    footer { padding:10px 4px 0; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+    .toast { position: fixed; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom));
+             transform: translateX(-50%) translateY(120%);
+             background: #2c2533; color:#ffd180; padding:10px 14px; border-radius:999px; box-shadow:0 8px 24px rgba(0,0,0,.35);
+             transition: transform .35s ease; z-index: 10; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  
+    .probe-title{ font-weight:700; margin:6px 0 8px; color:#ffd180; }
+    .probe-list{ margin:6px 0 0 14px; padding:0; }
+    .probe-list li{ margin:4px 0; color:#cfc6d9; font-size:14px; }
+
+    .chip { padding:8px 10px; border-radius:999px; background:#3a3242; color:#ffd180; font-size:13px; cursor:pointer; }
+    .chip:hover { background:#473f50; }
+    </style>
+    
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="row">
+      <span class="badge" id="streakBadge">연속 0일</span>
+    </div>
+    <div class="row">
+      <button class="secondary" id="installBtn" style="display:none">홈에 추가</button>
+      <button class="secondary" id="shareInBtn">공유로 열기</button>
+    </div>
+  </header>
+
+  
+  <section class="card" id="writerCard">
+    <div class="row" style="justify-content:space-between; align-items:flex-start;">
+      <div class="question" id="questionCard">오늘 장작을 추가해볼까요?</div>
+      <button class="secondary" id="nextQ">다른 질문</button>
+    </div>
+    <div class="hint">사건→감정→성찰, 각 단계는 자유롭게 작성해도 됩니다. 길수록 보상이 커져요.</div>
+
+    <div class="row" style="gap:6px; margin-top:10px;">
+      <span class="badge" id="phaseBadge">1/3 단계</span>
+      <span class="badge" id="phaseHint">사건·상황 서술</span>
+    </div>
+
+    <div id="phasePanels" style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">
+  <div id="probeChips" class="row" style="flex-wrap:wrap; gap:8px;"></div>
+      <textarea id="phase1" placeholder="1) 사건·상황을 구체적으로 적어주세요 (자유)"></textarea>
+      <textarea id="phase2" placeholder="2) 감정·생각을 구체화해보세요 (자유)"></textarea>
+      <textarea id="phase3" placeholder="3) 자기 성찰을 한 줄로 정리해보세요 (자유)"></textarea>
+    </div>
+    <div class="hint" id="phaseLenHint">0/3 단계 충족</div>
+
+    <div class="controls" style="margin-top:10px;">
+      <button id="probeBtn">프 로 브 질문</button>
+      <button id="saveBtn" aria-disabled="false" type="button">저장하기</button>
+      <button class="secondary" id="shareBtn">Campfire 공유</button>
+    </div>
+  </section>
+
+
+
+  <section class="card">
+    <canvas id="campfire" width="800" height="400"></canvas>
+    <div class="row" style="justify-content:space-between;">
+      <div class="hint" id="levelHint">L0 · 불씨</div>
+      <div class="hint" id="scoreHint">score 0</div>
+    </div>
+  </section>
+
+  <section class="card dock-banner" id="dockBanner">
+    <div>Dock/홈화면에 추가하면 <b>보너스 장작 +1</b>!</div>
+    <button id="dockOk" class="secondary">확인</button>
+  </section>
+
+  <footer>
+    <div class="hint">어제의 한 줄: <span id="yesterdayPreview">—</span></div>
+    <div class="row">
+      <span class="badge" id="campfireGate">Campfire 입장권: 장문 0/3</span>
+    </div>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
