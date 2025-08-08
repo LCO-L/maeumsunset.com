@@ -21,7 +21,6 @@
             transition: all 1s ease;
         }
 
-        /* 날씨별 배경 */
         body.sunny { background: linear-gradient(135deg, #FDB99B 0%, #CF8BF3 50%, #FDB99B 100%); }
         body.rainy { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); }
         body.cloudy { background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%); }
@@ -40,38 +39,6 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* 날씨 애니메이션 */
-        .weather-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            pointer-events: none;
-            overflow: hidden;
-            border-radius: 30px;
-        }
-
-        .rain-drop {
-            position: absolute;
-            width: 2px; height: 12px;
-            background: linear-gradient(transparent, rgba(255,255,255,0.6));
-            animation: rainFall 1s linear infinite;
-        }
-        @keyframes rainFall { to { transform: translateY(700px); } }
-
-        .snow-flake {
-            position: absolute;
-            color: white; font-size: 14px;
-            animation: snowFall 3s linear infinite;
-        }
-        @keyframes snowFall { to { transform: translateY(700px) rotate(360deg); } }
-
-        .sun-ray {
-            position: absolute; width: 100%; height: 100%;
-            background: radial-gradient(circle at 30% 30%, rgba(255,223,128,0.1) 0%, transparent 50%);
-            animation: sunPulse 4s ease-in-out infinite;
-        }
-        @keyframes sunPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
-
-        /* 헤더 */
         .header {
             display: flex;
             align-items: center;
@@ -107,7 +74,6 @@
             cursor: pointer;
         }
 
-        /* 메인 뷰 */
         .main-view {
             display: none;
             height: calc(100% - 80px);
@@ -118,15 +84,8 @@
 
         .main-view.active {
             display: block;
-            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            0% { opacity: 0; transform: translateY(10px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 홈 화면 */
         .location-bar {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
@@ -278,7 +237,6 @@
             transform: scale(1.1);
         }
 
-        /* 액션 버튼 */
         .action-buttons {
             display: flex;
             gap: 10px;
@@ -308,7 +266,6 @@
             backdrop-filter: blur(10px);
         }
 
-        /* 통계 화면 */
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -384,7 +341,6 @@
             min-width: 20px;
         }
 
-        /* 캠프파이어 화면 */
         .campfire-header {
             text-align: center;
             margin-bottom: 20px;
@@ -514,7 +470,6 @@
             color: rgba(255,255,255,0.5);
         }
 
-        /* 하단 네비게이션 */
         .bottom-nav {
             position: absolute;
             bottom: 15px;
@@ -545,7 +500,6 @@
             transform: scale(1.1);
         }
 
-        /* 토스트 */
         .toast {
             position: fixed;
             top: 50px;
@@ -567,7 +521,6 @@
             100% { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
 
-        /* 반응형 */
         @media (max-width: 480px) {
             .phone-container {
                 width: 100vw;
@@ -579,10 +532,6 @@
 </head>
 <body id="bodyElement">
     <div class="phone-container">
-        <!-- 날씨 애니메이션 오버레이 -->
-        <div class="weather-overlay" id="weatherOverlay"></div>
-
-        <!-- 헤더 -->
         <div class="header">
             <div class="logo">
                 <div class="logo-icon">🌅</div>
@@ -596,10 +545,10 @@
         </div>
 
         <!-- 홈 화면 -->
-        <div class="main-view active" id="homeView" style="display: block;">
+        <div class="main-view active" id="homeView">
             <div class="location-bar">
                 <span>📍</span>
-                <span id="locationText">Seoul, Gangnam</span>
+                <span>Seoul, Gangnam</span>
             </div>
 
             <div class="weather-prompt" id="weatherPrompt">
@@ -626,7 +575,7 @@
         </div>
 
         <!-- 통계 화면 -->
-        <div class="main-view" id="statsView" style="display: none;">
+        <div class="main-view" id="statsView">
             <h2 style="color: #ff6b35; margin-bottom: 20px; text-align: center;">📊 나의 감정 통계</h2>
             
             <div class="stats-grid">
@@ -667,17 +616,10 @@
                     </div>
                 </div>
             </div>
-
-            <div class="chart-container">
-                <h3 style="color: white; margin-bottom: 15px;">최근 활동</h3>
-                <p style="color: rgba(255,255,255,0.7); font-size: 14px;">
-                    일기를 더 많이 작성하면 상세한 통계를 볼 수 있어요!
-                </p>
-            </div>
         </div>
 
         <!-- 캠프파이어 화면 -->
-        <div class="main-view" id="campfireView" style="display: none;">
+        <div class="main-view" id="campfireView">
             <div class="campfire-header">
                 <h2 style="color: #ff6b35;">🔥 Campfire</h2>
                 <p style="color: rgba(255,255,255,0.8); font-size: 14px;">다른 사람들의 마음이 담긴 이야기들</p>
@@ -685,8 +627,7 @@
             
             <div class="campfire-flame"></div>
             
-            <div class="sticky-notes-container" id="stickyNotesContainer">
-                <!-- 샘플 스티키노트들 -->
+            <div class="sticky-notes-container">
                 <div class="sticky-note">
                     <div class="note-content">오늘 첫눈을 보면서 어린 시절이 생각났어요. 그때는 모든 게 신기하고 아름다웠는데...</div>
                     <div class="note-meta">
@@ -747,41 +688,11 @@
         // 전역 상태
         let appState = {
             weather: { type: 'sunny', temperature: 22, description: '맑음' },
-            location: { city: 'Seoul', district: 'Gangnam' },
             currentEmotion: null,
             recommendedTracks: []
         };
 
         let entryHistory = [];
-        let campfirePosts = [
-            {
-                id: 1,
-                content: "오늘 첫눈을 보면서 어린 시절이 생각났어요. 그때는 모든 게 신기하고 아름다웠는데...",
-                emotion: "nostalgic",
-                weather: "snowy",
-                timestamp: new Date(Date.now() - 3600000),
-                likes: 5,
-                reactions: { "❤️": 3, "🤗": 2 }
-            },
-            {
-                id: 2,
-                content: "비 오는 날이면 항상 창가에 앉아서 커피를 마시게 돼요. 이 평온함이 좋아요.",
-                emotion: "calm",
-                weather: "rainy", 
-                timestamp: new Date(Date.now() - 7200000),
-                likes: 8,
-                reactions: { "☕": 4, "💙": 2 }
-            },
-            {
-                id: 3,
-                content: "친구들과 공원에서 피크닉! 햇살이 따뜻하고 바람이 살랑살랑~ 이런 날이 행복이죠",
-                emotion: "happy",
-                weather: "sunny",
-                timestamp: new Date(Date.now() - 10800000),
-                likes: 12,
-                reactions: { "😊": 5, "☀️": 3 }
-            }
-        ];
 
         // 음악 데이터베이스
         const musicDatabase = {
@@ -820,17 +731,190 @@
             snowy: "조용히 내리는 눈처럼, 고요한 마음으로 오늘을 돌아보세요 ❄️"
         };
 
-        // 초기화
-        document.addEventListener('DOMContentLoaded', function() {
-            updateWeatherUI();
-            updateCampfireView();
-            setTimeout(() => document.getElementById('mainTextarea').focus(), 100);
-        });
+        // ===== 모든 함수를 전역으로 정의 =====
 
-        // 뷰 전환 - 전역 함수로 정의
-        window.showView = function(viewName) {
-            console.log('Switching to view:', viewName);
+        function showToast(message) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) existingToast.remove();
             
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 3000);
+        }
+
+        function changeWeather() {
+            const weatherTypes = ['sunny', 'rainy', 'cloudy', 'snowy'];
+            const currentIndex = weatherTypes.indexOf(appState.weather.type);
+            const nextIndex = (currentIndex + 1) % weatherTypes.length;
+            const nextWeather = weatherTypes[nextIndex];
+            
+            appState.weather.type = nextWeather;
+            appState.weather.description = getWeatherDescription(nextWeather);
+            appState.weather.temperature = Math.floor(Math.random() * 30) + 5;
+            
+            updateWeatherUI();
+            showToast(`날씨가 ${appState.weather.description}로 변경되었습니다`);
+        }
+
+        function getWeatherDescription(type) {
+            const descriptions = { sunny: '맑음', rainy: '비', cloudy: '흐림', snowy: '눈' };
+            return descriptions[type] || '맑음';
+        }
+
+        function updateWeatherUI() {
+            const body = document.getElementById('bodyElement');
+            const weatherIcon = document.getElementById('weatherIcon');
+            const temperature = document.getElementById('temperature');
+            const weatherDesc = document.getElementById('weatherDesc');
+            const weatherPrompt = document.getElementById('weatherPrompt');
+            
+            body.className = appState.weather.type;
+            
+            const icons = { sunny: '☀️', rainy: '🌧️', cloudy: '☁️', snowy: '❄️' };
+            weatherIcon.textContent = icons[appState.weather.type];
+            temperature.textContent = `${appState.weather.temperature}°`;
+            weatherDesc.textContent = appState.weather.description;
+            weatherPrompt.textContent = weatherPrompts[appState.weather.type];
+        }
+
+        function analyzeEmotion(text) {
+            if (!text || text.length < 10) return 'calm';
+            
+            const emotionKeywords = {
+                happy: ['기쁘', '행복', '즐거', '웃', '좋', '사랑', '완벽', '성공'],
+                sad: ['슬프', '우울', '눈물', '힘들', '아프', '그리워', '외로', '상처'],
+                calm: ['평온', '차분', '조용', '고요', '편안', '안정', '휴식'],
+                energetic: ['신나', '활기', '열정', '에너지', '역동', '적극', '도전'],
+                nostalgic: ['그리워', '추억', '옛날', '과거', '그때', '향수']
+            };
+            
+            let scores = {};
+            Object.keys(emotionKeywords).forEach(emotion => {
+                scores[emotion] = 0;
+                emotionKeywords[emotion].forEach(keyword => {
+                    if (text.includes(keyword)) scores[emotion]++;
+                });
+            });
+            
+            let maxEmotion = 'calm';
+            let maxScore = 0;
+            Object.keys(scores).forEach(emotion => {
+                if (scores[emotion] > maxScore) {
+                    maxScore = scores[emotion];
+                    maxEmotion = emotion;
+                }
+            });
+            
+            return maxScore > 0 ? maxEmotion : 'calm';
+        }
+
+        function recommendMusic(emotion, weather) {
+            let tracks = musicDatabase[emotion] || musicDatabase.calm;
+            if (weather === 'rainy' && emotion === 'happy') {
+                tracks = musicDatabase.calm;
+            }
+            return tracks.slice(0, 3);
+        }
+
+        function updateEmotionIndicator(emotion) {
+            const indicator = document.getElementById('emotionIndicator');
+            const emotionLabels = {
+                happy: '기쁨', sad: '슬픔', calm: '평온', 
+                energetic: '활기', nostalgic: '그리움'
+            };
+            const emotionEmojis = {
+                happy: '😊', sad: '😢', calm: '😌', 
+                energetic: '⚡', nostalgic: '🥀'
+            };
+            
+            indicator.innerHTML = `
+                <span class="emotion-tag">
+                    ${emotionEmojis[emotion]} ${emotionLabels[emotion]}
+                </span>
+                <span class="emotion-tag">
+                    ${appState.weather.description} 날씨
+                </span>
+            `;
+        }
+
+        function showMusicRecommendation(tracks) {
+            const musicRec = document.getElementById('musicRecommendation');
+            const musicTracks = document.getElementById('musicTracks');
+            
+            musicTracks.innerHTML = tracks.map(track => `
+                <div class="music-track" onclick="playTrack('${track.name}', '${track.artist}')">
+                    <div class="track-artwork">${track.emoji}</div>
+                    <div class="track-info">
+                        <div class="track-name">${track.name}</div>
+                        <div class="track-artist">${track.artist}</div>
+                    </div>
+                    <button class="play-btn">▶</button>
+                </div>
+            `).join('');
+            
+            musicRec.classList.add('show');
+        }
+
+        function playTrack(name, artist) {
+            showToast(`🎵 "${name}" 재생 중...`);
+        }
+
+        function saveEntryToHistory(text, emotion, weather) {
+            const entry = {
+                id: Date.now(),
+                text: text,
+                emotion: emotion,
+                weather: weather,
+                timestamp: new Date().toISOString()
+            };
+            entryHistory.push(entry);
+        }
+
+        function analyzeAndRecommend() {
+            const text = document.getElementById('mainTextarea').value;
+            
+            if (text.length < 20) {
+                showToast("최소 20자 이상 작성해주세요");
+                return;
+            }
+            
+            showToast("일기를 분석하고 음악을 추천하는 중...");
+            
+            const emotion = analyzeEmotion(text);
+            appState.currentEmotion = emotion;
+            
+            updateEmotionIndicator(emotion);
+            
+            const recommendedTracks = recommendMusic(emotion, appState.weather.type);
+            appState.recommendedTracks = recommendedTracks;
+            
+            saveEntryToHistory(text, emotion, appState.weather);
+            
+            setTimeout(() => {
+                showMusicRecommendation(recommendedTracks);
+                showToast("완료! 오늘의 감정에 맞는 음악을 찾았습니다 🎵");
+            }, 1500);
+        }
+
+        function shareEntry() {
+            const text = document.getElementById('mainTextarea').value;
+            if (text.length < 20) {
+                showToast("공유할 내용을 먼저 작성해주세요");
+                return;
+            }
+            
+            document.getElementById('campfireTextarea').value = text;
+            showView('campfire');
+            showToast("캠프파이어에서 이야기를 나누어 보세요! 🔥");
+            document.getElementById('mainTextarea').value = '';
+        }
+
+        function showView(viewName) {
             // 모든 뷰 숨기기
             document.querySelectorAll('.main-view').forEach(view => {
                 view.classList.remove('active');
@@ -858,65 +942,52 @@
                 campfireView.style.display = 'block';
                 campfireView.classList.add('active');
                 document.querySelectorAll('.nav-btn')[1].classList.add('active');
-                updateCampfireView();
             }
-        };
+        }
 
-        // 다른 전역 함수들도 window에 등록
-        window.changeWeather = function() {
-            const weatherTypes = ['sunny', 'rainy', 'cloudy', 'snowy'];
-            const currentIndex = weatherTypes.indexOf(appState.weather.type);
-            const nextIndex = (currentIndex + 1) % weatherTypes.length;
-            const nextWeather = weatherTypes[nextIndex];
+        function updateStatsView() {
+            const stats = calculateStats();
             
-            appState.weather.type = nextWeather;
-            appState.weather.description = getWeatherDescription(nextWeather);
-            appState.weather.temperature = Math.floor(Math.random() * 30) + 5;
-            
-            updateWeatherUI();
-            showToast(`날씨가 ${appState.weather.description}로 변경되었습니다`);
-        };
+            document.getElementById('totalEntries').textContent = stats.totalEntries;
+            document.getElementById('avgLength').textContent = stats.avgLength;
+            document.getElementById('streakDays').textContent = stats.streakDays;
+            document.getElementById('topEmotion').textContent = stats.topEmotionIcon;
+        }
 
-        window.analyzeAndRecommend = function() {
-            const text = document.getElementById('mainTextarea').value;
-            
-            if (text.length < 20) {
-                showToast("최소 20자 이상 작성해주세요");
-                return;
+        function calculateStats() {
+            if (entryHistory.length === 0) {
+                return {
+                    totalEntries: 0, avgLength: 0, streakDays: 0,
+                    topEmotionIcon: '😊', emotionCounts: {}
+                };
             }
             
-            showToast("일기를 분석하고 음악을 추천하는 중...");
+            const emotionCounts = {};
+            let totalLength = 0;
             
-            const emotion = analyzeEmotion(text);
-            appState.currentEmotion = emotion;
+            entryHistory.forEach(entry => {
+                emotionCounts[entry.emotion] = (emotionCounts[entry.emotion] || 0) + 1;
+                totalLength += entry.text.length;
+            });
             
-            updateEmotionIndicator(emotion);
+            const topEmotion = Object.keys(emotionCounts).reduce((a, b) => 
+                emotionCounts[a] > emotionCounts[b] ? a : b, 'happy');
             
-            const recommendedTracks = recommendMusic(emotion, appState.weather.type);
-            appState.recommendedTracks = recommendedTracks;
+            const emotionIcons = {
+                happy: '😊', sad: '😢', calm: '😌', 
+                energetic: '⚡', nostalgic: '🥀'
+            };
             
-            saveEntryToHistory(text, emotion, appState.weather);
-            
-            setTimeout(() => {
-                showMusicRecommendation(recommendedTracks);
-                showToast("완료! 오늘의 감정에 맞는 음악을 찾았습니다 🎵");
-            }, 1500);
-        };
+            return {
+                totalEntries: entryHistory.length,
+                avgLength: Math.round(totalLength / entryHistory.length),
+                streakDays: Math.min(entryHistory.length, 7),
+                topEmotionIcon: emotionIcons[topEmotion] || '😊',
+                emotionCounts
+            };
+        }
 
-        window.shareEntry = function() {
-            const text = document.getElementById('mainTextarea').value;
-            if (text.length < 20) {
-                showToast("공유할 내용을 먼저 작성해주세요");
-                return;
-            }
-            
-            document.getElementById('campfireTextarea').value = text;
-            showView('campfire');
-            showToast("캠프파이어에서 이야기를 나누어 보세요! 🔥");
-            document.getElementById('mainTextarea').value = '';
-        };
-
-        window.postToCampfire = function() {
+        function postToCampfire() {
             const textarea = document.getElementById('campfireTextarea');
             const content = textarea.value.trim();
             
@@ -926,75 +997,46 @@
             }
             
             const emotion = analyzeEmotion(content);
-            const newPost = {
-                id: Date.now(),
-                content: content,
-                emotion: emotion,
-                weather: appState.weather.type,
-                timestamp: new Date(),
-                likes: 0,
-                reactions: {},
-                liked: false
-            };
             
-            campfirePosts.unshift(newPost);
-            if (campfirePosts.length > 20) campfirePosts.pop();
+            // 새 스티키노트 추가
+            const container = document.querySelector('.sticky-notes-container');
+            const newNote = document.createElement('div');
+            newNote.className = 'sticky-note';
+            newNote.innerHTML = `
+                <div class="note-content">${content}</div>
+                <div class="note-meta">
+                    <div>😊 ☀️</div>
+                    <div>방금 전</div>
+                </div>
+                <div class="reaction-buttons">
+                    <button class="reaction-btn">❤️0</button>
+                    <button class="reaction-btn">👍0</button>
+                </div>
+            `;
             
-            updateCampfireView();
+            container.insertBefore(newNote, container.firstChild);
+            
             textarea.value = '';
             showToast("🔥 캠프파이어에 이야기가 추가되었습니다!");
-        };
-
-        window.playTrack = function(name, artist) {
-            showToast(`🎵 "${name}" 재생 중...`);
-        };
-
-        window.showSettings = function() {
-            showToast("⚙️ 설정 기능은 준비 중입니다");
-        };
-
-        window.interactWithPost = function(postId) {
-            showToast("포스트에 공감합니다 💭");
-        };
-
-        window.toggleLike = function(postId) {
-            const post = campfirePosts.find(p => p.id === postId);
-            if (post) {
-                post.likes = post.liked ? post.likes - 1 : post.likes + 1;
-                post.liked = !post.liked;
-                updateCampfireView();
-                showToast(post.liked ? "❤️ 좋아요!" : "좋아요 취소");
-            }
-        };
-
-        window.addReaction = function(postId, emoji) {
-            const post = campfirePosts.find(p => p.id === postId);
-            if (post) {
-                post.reactions[emoji] = (post.reactions[emoji] || 0) + 1;
-                updateCampfireView();
-                showToast(`${emoji} 반응을 보냈습니다!`);
-            }
-        };
-
-        function getWeatherDescription(type) {
-            const descriptions = { sunny: '맑음', rainy: '비', cloudy: '흐림', snowy: '눈' };
-            return descriptions[type] || '맑음';
         }
 
-        // 날씨 UI 업데이트
-        function updateWeatherUI() {
-            const body = document.getElementById('bodyElement');
-            const weatherIcon = document.getElementById('weatherIcon');
-            const temperature = document.getElementById('temperature');
-            const weatherDesc = document.getElementById('weatherDesc');
-            const weatherPrompt = document.getElementById('weatherPrompt');
-            
-            body.className = appState.weather.type;
-            
-            const icons = { sunny: '☀️', rainy: '🌧️', cloudy: '☁️', snowy: '❄️' };
-            weatherIcon.textContent = icons[appState.weather.type];
-            temperature.textContent = `${appState.weather.temperature}°`;
-            weatherDesc.textContent = appState.weather.description;
-            weatherPrompt.textContent = weatherPrompts[appState.weather.type];
-            
-            create
+        function showSettings() {
+            showToast("⚙️ 설정 기능은 준비 중입니다");
+        }
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            updateWeatherUI();
+            setTimeout(() => document.getElementById('mainTextarea').focus(), 100);
+        });
+
+        // 키보드 단축키
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                analyzeAndRecommend();
+            }
+        });
+    </script>
+</body>
+</html>
