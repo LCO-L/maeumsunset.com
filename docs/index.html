@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SunSet - Core Survival Spec</title>
+    <title>SunSet - AI 감정 동반자</title>
     <style>
         * {
             margin: 0;
@@ -32,36 +32,72 @@
             overflow: hidden;
         }
 
-        /* 오프닝 애니메이션 */
-        .opening-overlay {
+        /* Dock 유도 오버레이 */
+        .dock-prompt-overlay {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle, rgba(255,107,53,0.8) 0%, rgba(26,26,46,0.9) 70%);
-            z-index: 1000;
-            display: flex;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            display: none;
             align-items: center;
             justify-content: center;
-            animation: openingFade 0.3s ease-out forwards;
+            backdrop-filter: blur(10px);
         }
 
-        @keyframes openingFade {
-            0% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(1.1); pointer-events: none; }
-        }
-
-        .opening-logo {
-            font-size: 48px;
+        .dock-prompt-content {
+            background: linear-gradient(145deg, #ff6b35, #f7931e);
+            padding: 30px;
+            border-radius: 25px;
+            text-align: center;
             color: white;
-            text-shadow: 0 0 30px rgba(255,107,53,0.8);
-            animation: logoGlow 0.3s ease;
+            max-width: 300px;
+            animation: dockPulse 2s ease-in-out infinite;
         }
 
-        @keyframes logoGlow {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        @keyframes dockPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255,107,53,0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255,107,53,0.8); }
+        }
+
+        .dock-prompt-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .dock-prompt-text {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .dock-prompt-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .dock-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dock-btn-yes {
+            background: white;
+            color: #ff6b35;
+        }
+
+        .dock-btn-later {
+            background: rgba(255,255,255,0.2);
+            color: white;
         }
 
         /* 헤더 */
@@ -71,13 +107,6 @@
             justify-content: space-between;
             margin-bottom: 15px;
             color: white;
-            opacity: 0;
-            animation: slideInTop 0.5s ease 0.3s forwards;
-        }
-
-        @keyframes slideInTop {
-            0% { opacity: 0; transform: translateY(-20px); }
-            100% { opacity: 1; transform: translateY(0); }
         }
 
         .logo {
@@ -95,28 +124,33 @@
             align-items: center;
             justify-content: center;
             font-size: 16px;
+            animation: logoBreath 3s ease-in-out infinite;
         }
 
-        .time {
-            font-size: 14px;
+        @keyframes logoBreath {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .user-stats {
+            font-size: 12px;
             opacity: 0.8;
+            text-align: right;
+        }
+
+        .streak-counter {
+            color: #ff6b35;
+            font-weight: 700;
         }
 
         /* 메인 뷰 */
         .main-view {
             display: none;
             height: calc(100% - 80px);
-            opacity: 0;
         }
 
         .main-view.active {
             display: block;
-            animation: fadeInUp 0.5s ease 0.4s forwards;
-        }
-
-        @keyframes fadeInUp {
-            0% { opacity: 0; transform: translateY(30px); }
-            100% { opacity: 1; transform: translateY(0); }
         }
 
         /* 홈 화면 */
@@ -127,7 +161,55 @@
             flex-direction: column;
         }
 
-        .yesterday-entry {
+        /* AI 동반자 상태 */
+        .ai-companion {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 15px;
+            padding: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: aiGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes aiGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(255,107,53,0.2); }
+            50% { box-shadow: 0 0 20px rgba(255,107,53,0.4); }
+        }
+
+        .ai-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            animation: avatarPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes avatarPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .ai-message {
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+
+        .ai-name {
+            color: #ff6b35;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        /* 어제 기록 + 연속 스트릭 */
+        .yesterday-section {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             padding: 15px;
@@ -136,10 +218,31 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        .yesterday-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
         .yesterday-label {
             font-size: 12px;
             opacity: 0.7;
-            margin-bottom: 8px;
+        }
+
+        .streak-badge {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            animation: streakGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes streakGlow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255,107,53,0.3); }
+            50% { box-shadow: 0 0 15px rgba(255,107,53,0.6); }
         }
 
         .yesterday-text {
@@ -161,9 +264,15 @@
             border-radius: 12px;
             font-size: 11px;
             border: 1px solid rgba(255, 107, 53, 0.3);
+            animation: tagFloat 6s ease-in-out infinite;
         }
 
-        /* 메인 작성 영역 */
+        @keyframes tagFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+
+        /* 메인 입력 영역 */
         .main-input-area {
             flex: 1;
             position: relative;
@@ -171,7 +280,7 @@
 
         .main-textarea {
             width: 100%;
-            height: 200px;
+            height: 180px;
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
@@ -195,84 +304,137 @@
             color: rgba(255, 255, 255, 0.4);
         }
 
-        /* 실시간 타이핑 효과 */
-        .typing-aura {
+        /* 실시간 감정 오라 */
+        .emotion-aura {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 20px;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 25px;
             pointer-events: none;
             opacity: 0;
-            background: radial-gradient(circle at center, rgba(255,107,53,0.2) 0%, transparent 70%);
-            transition: opacity 0.3s ease;
+            transition: all 0.5s ease;
         }
 
-        .typing-aura.active {
-            opacity: 1;
-            animation: auralPulse 2s ease-in-out infinite;
+        .emotion-aura.happy {
+            background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, transparent 70%);
+            animation: happyPulse 2s ease-in-out infinite;
         }
 
-        @keyframes auralPulse {
-            0%, 100% { transform: scale(1); opacity: 0.3; }
-            50% { transform: scale(1.02); opacity: 0.5; }
+        .emotion-aura.sad {
+            background: radial-gradient(circle, rgba(100,149,237,0.3) 0%, transparent 70%);
+            animation: sadFlow 3s ease-in-out infinite;
         }
 
-        /* 길이 표시기 */
-        .length-indicator {
+        .emotion-aura.angry {
+            background: radial-gradient(circle, rgba(255,69,0,0.4) 0%, transparent 70%);
+            animation: angryFlicker 1s ease-in-out infinite;
+        }
+
+        .emotion-aura.calm {
+            background: radial-gradient(circle, rgba(144,238,144,0.3) 0%, transparent 70%);
+            animation: calmBreath 4s ease-in-out infinite;
+        }
+
+        @keyframes happyPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.02); }
+        }
+
+        @keyframes sadFlow {
+            0%, 100% { opacity: 0.2; transform: translateY(0); }
+            50% { opacity: 0.4; transform: translateY(-5px); }
+        }
+
+        @keyframes angryFlicker {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes calmBreath {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.01); }
+        }
+
+        /* 길이 + 감정 표시기 */
+        .emotion-indicator {
             position: absolute;
             top: 15px;
             right: 15px;
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: conic-gradient(#ff6b35 0deg, rgba(255, 255, 255, 0.1) 0deg);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 10px;
             color: white;
             font-weight: 600;
             transition: all 0.3s ease;
             z-index: 10;
         }
 
-        .length-indicator.milestone {
-            animation: milestoneGlow 1s ease;
+        .emotion-emoji {
+            font-size: 20px;
+            margin-bottom: 2px;
         }
 
-        @keyframes milestoneGlow {
-            0% { transform: scale(1); box-shadow: 0 0 0 rgba(255,107,53,0.7); }
-            50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255,107,53,0.7); }
-            100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,107,53,0.7); }
+        .length-number {
+            font-size: 9px;
+            opacity: 0.8;
         }
 
         /* AI 프로브 시스템 */
-        .probe-system {
+        .ai-probe-system {
             margin-top: 15px;
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.5s ease;
         }
 
-        .probe-system.show {
+        .ai-probe-system.show {
             opacity: 1;
             transform: translateY(0);
         }
 
-        .probe-question {
+        .ai-probe-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .ai-probe-avatar {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .ai-probe-question {
             background: rgba(255, 107, 53, 0.15);
             border: 1px solid rgba(255, 107, 53, 0.3);
             border-radius: 15px;
             padding: 12px;
-            margin-bottom: 10px;
             color: #ff6b35;
             font-size: 14px;
             border-left: 4px solid #ff6b35;
+            animation: questionGlow 3s ease-in-out infinite;
         }
 
-        .probe-input {
+        @keyframes questionGlow {
+            0%, 100% { background: rgba(255, 107, 53, 0.15); }
+            50% { background: rgba(255, 107, 53, 0.25); }
+        }
+
+        .ai-probe-input {
             width: 100%;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -284,11 +446,57 @@
             min-height: 60px;
             outline: none;
             transition: all 0.3s ease;
+            margin-top: 8px;
         }
 
-        .probe-input:focus {
+        .ai-probe-input:focus {
             border-color: #ff6b35;
             box-shadow: 0 0 15px rgba(255, 107, 53, 0.2);
+        }
+
+        /* 사용 현황 */
+        .usage-stats {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #ff6b35;
+            font-weight: 600;
+        }
+
+        /* Dock 유도 버튼 */
+        .dock-hint {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: dockBlink 4s ease-in-out infinite;
+        }
+
+        @keyframes dockBlink {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .dock-hint:hover {
+            background: rgba(255, 107, 53, 0.2);
+            transform: translateY(-2px);
         }
 
         /* 액션 버튼들 */
@@ -316,20 +524,16 @@
             box-shadow: 0 10px 25px rgba(255, 107, 53, 0.4);
         }
 
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-        }
-
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
         }
 
         /* 캠프파이어 화면 */
@@ -347,25 +551,6 @@
             font-weight: 700;
             margin-bottom: 20px;
             color: #ff6b35;
-        }
-
-        .access-denied {
-            background: rgba(255, 0, 0, 0.1);
-            border: 1px solid rgba(255, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            color: #ff6b6b;
-        }
-
-        .access-requirements {
-            font-size: 14px;
-            margin-top: 10px;
-            opacity: 0.8;
-        }
-
-        .campfire-unlocked {
-            flex: 1;
         }
 
         .fire-container {
@@ -387,22 +572,39 @@
             animation: fireFlicker 2s ease-in-out infinite alternate;
         }
 
-        .fire.enhanced {
-            width: 90px;
-            height: 130px;
-            animation: fireFlickerEnhanced 1.5s ease-in-out infinite alternate;
+        .fire.happy {
+            background: radial-gradient(circle, #ffd700 0%, #ff8c42 30%, #ffff88 70%);
+            animation: fireFlickerHappy 1.5s ease-in-out infinite alternate;
         }
 
-        .fire::before {
-            content: '';
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            width: 54px;
-            height: 84px;
-            background: radial-gradient(circle, #ffff88 0%, #ff6b35 70%);
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            animation: fireFlicker 1.8s ease-in-out infinite alternate-reverse;
+        .fire.sad {
+            background: radial-gradient(circle, #6495ed 0%, #4169e1 30%, #87ceeb 70%);
+            animation: fireFlickerSad 3s ease-in-out infinite alternate;
+        }
+
+        .fire.angry {
+            background: radial-gradient(circle, #ff4500 0%, #dc143c 30%, #ff6347 70%);
+            animation: fireFlickerAngry 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes fireFlicker {
+            0% { transform: translateX(-50%) scale(1) rotate(-1deg); }
+            100% { transform: translateX(-50%) scale(1.05) rotate(1deg); }
+        }
+
+        @keyframes fireFlickerHappy {
+            0% { transform: translateX(-50%) scale(1) rotate(-2deg); filter: brightness(1.3); }
+            100% { transform: translateX(-50%) scale(1.15) rotate(2deg); filter: brightness(1.5); }
+        }
+
+        @keyframes fireFlickerSad {
+            0% { transform: translateX(-50%) scale(0.9) rotate(-0.5deg); filter: brightness(0.8); }
+            100% { transform: translateX(-50%) scale(0.95) rotate(0.5deg); filter: brightness(0.9); }
+        }
+
+        @keyframes fireFlickerAngry {
+            0% { transform: translateX(-50%) scale(1.1) rotate(-3deg); filter: brightness(1.4); }
+            100% { transform: translateX(-50%) scale(1.2) rotate(3deg); filter: brightness(1.6); }
         }
 
         .logs {
@@ -437,86 +639,7 @@
             transform: rotate(12deg);
         }
 
-        /* 동적 장작 */
-        .dynamic-log {
-            position: absolute;
-            width: 60px;
-            height: 15px;
-            background: #8B4513;
-            border-radius: 8px;
-            opacity: 0;
-            animation: logDrop 1s ease-out forwards;
-        }
-
-        @keyframes logDrop {
-            0% { opacity: 1; transform: translateY(-100px) rotate(0deg); }
-            100% { opacity: 0.8; transform: translateY(0) rotate(15deg); }
-        }
-
-        @keyframes fireFlicker {
-            0% { transform: translateX(-50%) scale(1) rotate(-1deg); }
-            100% { transform: translateX(-50%) scale(1.05) rotate(1deg); }
-        }
-
-        @keyframes fireFlickerEnhanced {
-            0% { transform: translateX(-50%) scale(1) rotate(-2deg); filter: brightness(1.2); }
-            100% { transform: translateX(-50%) scale(1.1) rotate(2deg); filter: brightness(1.5); }
-        }
-
-        .campfire-subtitle {
-            font-size: 14px;
-            opacity: 0.8;
-            margin-bottom: 20px;
-        }
-
-        .campfire-input-area {
-            width: 100%;
-            flex: 1;
-        }
-
-        .campfire-textarea {
-            width: 100%;
-            height: 150px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 15px;
-            color: white;
-            font-size: 16px;
-            resize: none;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .campfire-textarea:focus {
-            border-color: #ff6b35;
-            box-shadow: 0 0 25px rgba(255, 107, 53, 0.3);
-        }
-
-        .campfire-tools {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .tool-btn {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 20px;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .tool-btn:hover {
-            color: #ff6b35;
-        }
-
-        /* 네비게이션 */
+        /* 하단 네비게이션 */
         .bottom-nav {
             position: absolute;
             bottom: 15px;
@@ -539,12 +662,29 @@
             transition: all 0.3s ease;
             padding: 8px;
             border-radius: 12px;
+            position: relative;
         }
 
         .nav-btn.active {
             color: #ff6b35;
             background: rgba(255, 107, 53, 0.2);
             transform: scale(1.1);
+        }
+
+        .nav-btn .notification-dot {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 8px;
+            height: 8px;
+            background: #ff6b35;
+            border-radius: 50%;
+            animation: notificationPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes notificationPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
         }
 
         /* 토스트 시스템 */
@@ -569,42 +709,45 @@
             100% { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
 
-        /* 반응형 */
-        @media (max-width: 480px) {
-            .phone-container {
-                width: 100vw;
-                height: 100vh;
-                border-radius: 0;
-            }
-        }
-
-        /* 스크롤바 숨기기 */
-        ::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* 기록 항목들 */
-        .entry-record {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 10px;
-            margin-bottom: 8px;
+        /* 위젯 시뮬레이션 */
+        .widget-preview {
+            background: rgba(255, 107, 53, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 15px;
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.8);
         }
 
-        .entry-count {
+        .widget-title {
             color: #ff6b35;
             font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .widget-content {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.3;
         }
     </style>
 </head>
 <body>
     <div class="phone-container">
-        <!-- 오프닝 애니메이션 -->
-        <div class="opening-overlay" id="openingOverlay">
-            <div class="opening-logo">🌅</div>
+        <!-- Dock 유도 오버레이 -->
+        <div class="dock-prompt-overlay" id="dockPromptOverlay">
+            <div class="dock-prompt-content">
+                <div class="dock-prompt-title">🔥 더 빠르게 열어보세요!</div>
+                <div class="dock-prompt-text">
+                    SunSet을 Dock에 추가하면<br>
+                    ✨ 3초 안에 바로 기록 시작<br>
+                    🎁 매일 특별 보너스 불꽃<br>
+                    🔮 AI가 더 깊이 이해해요
+                </div>
+                <div class="dock-prompt-buttons">
+                    <button class="dock-btn dock-btn-yes" onclick="addToDock()">Dock 추가!</button>
+                    <button class="dock-btn dock-btn-later" onclick="closeDockPrompt()">나중에</button>
+                </div>
+            </div>
         </div>
 
         <div class="header">
@@ -612,51 +755,96 @@
                 <div class="logo-icon">🌅</div>
                 <span style="font-weight: 700; font-size: 18px;">SunSet</span>
             </div>
-            <div class="time" id="currentTime"></div>
+            <div class="user-stats">
+                <div class="streak-counter" id="streakCounter">0일 연속</div>
+                <div id="currentTime"></div>
+            </div>
         </div>
 
         <!-- 홈 화면 -->
         <div class="main-view active" id="homeView">
             <div class="home-container">
-                <!-- 어제 기록 -->
-                <div class="yesterday-entry">
-                    <div class="yesterday-label">Yesterday</div>
+                <!-- AI 동반자 상태 -->
+                <div class="ai-companion">
+                    <div class="ai-avatar">🤖</div>
+                    <div class="ai-message">
+                        <div class="ai-name">Luna AI</div>
+                        <div id="aiMessage">오늘도 함께 마음을 기록해봐요! 💫</div>
+                    </div>
+                </div>
+
+                <!-- 어제 기록 + 스트릭 -->
+                <div class="yesterday-section">
+                    <div class="yesterday-header">
+                        <div class="yesterday-label">Yesterday</div>
+                        <div class="streak-badge" id="streakBadge">🔥 1일차</div>
+                    </div>
                     <div class="yesterday-text">Feeling motivated and hopeful about the future</div>
                     <div class="emotion-tags">
                         <span class="emotion-tag">희망적</span>
                         <span class="emotion-tag">동기부여</span>
+                        <span class="emotion-tag">평온</span>
                     </div>
                 </div>
 
                 <!-- 메인 입력 영역 -->
                 <div class="main-input-area">
-                    <div class="typing-aura" id="typingAura"></div>
+                    <div class="emotion-aura" id="emotionAura"></div>
                     <textarea 
                         class="main-textarea" 
                         id="mainTextarea"
-                        placeholder="Write something now..."
+                        placeholder="지금 마음은 어떤가요? Luna가 함께 들어줄게요..."
                         autofocus>
                     </textarea>
-                    <div class="length-indicator" id="lengthIndicator">
-                        <span id="lengthNumber">0</span>
+                    <div class="emotion-indicator" id="emotionIndicator">
+                        <div class="emotion-emoji" id="emotionEmoji">🌱</div>
+                        <div class="length-number" id="lengthNumber">0</div>
                     </div>
                 </div>
 
                 <!-- AI 프로브 시스템 -->
-                <div class="probe-system" id="probeSystem">
-                    <div class="probe-question" id="probeQuestion"></div>
-                    <textarea class="probe-input" id="probeInput" placeholder="더 자세히 들려주세요..."></textarea>
+                <div class="ai-probe-system" id="aiProbeSystem">
+                    <div class="ai-probe-header">
+                        <div class="ai-probe-avatar">🤖</div>
+                        <span style="font-size: 12px; color: #ff6b35;">Luna가 궁금해해요</span>
+                    </div>
+                    <div class="ai-probe-question" id="aiProbeQuestion"></div>
+                    <textarea class="ai-probe-input" id="aiProbeInput" placeholder="더 자세히 들려주세요..."></textarea>
                 </div>
 
-                <!-- 기록 현황 -->
-                <div class="entry-record">
-                    <span class="entry-count" id="entryCount">0</span>회 기록 완료 
-                    <span id="campfireStatus">(캠프파이어 잠금: 3회 필요)</span>
+                <!-- 사용 현황 -->
+                <div class="usage-stats">
+                    <div class="stat-row">
+                        <span>연속 기록일</span>
+                        <span class="stat-value" id="totalDays">1일</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>총 작성 글자</span>
+                        <span class="stat-value" id="totalChars">0자</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>캠프파이어 입장</span>
+                        <span class="stat-value" id="campfireStatus">2회 더 필요</span>
+                    </div>
+                </div>
+
+                <!-- Dock 유도 -->
+                <div class="dock-hint" onclick="showDockPrompt()">
+                    📱 Dock에 추가하면 Luna가 더 자주 만날 수 있어요!
+                </div>
+
+                <!-- 위젯 시뮬레이션 -->
+                <div class="widget-preview">
+                    <div class="widget-title">홈 화면 위젯 예시</div>
+                    <div class="widget-content">
+                        "오늘의 기록: 3줄 완성 ✨<br>
+                        Luna: 따뜻한 마음이 느껴져요"
+                    </div>
                 </div>
 
                 <!-- 액션 버튼 -->
                 <div class="action-buttons">
-                    <button class="btn" id="saveBtn" onclick="saveEntry()">저장</button>
+                    <button class="btn" id="saveBtn" onclick="saveEntry()">저장하기</button>
                     <button class="btn btn-secondary" id="campfireBtn" onclick="tryAccessCampfire()" disabled>캠프파이어</button>
                 </div>
             </div>
@@ -667,38 +855,29 @@
             <div class="campfire-container">
                 <div class="campfire-title">Campfire</div>
                 
-                <!-- 접근 거부 상태 -->
-                <div class="access-denied" id="accessDenied">
-                    <div style="font-size: 18px; margin-bottom: 10px;">🔒 캠프파이어는 잠겨있습니다</div>
-                    <div>진중한 감정 기록 문화를 위해</div>
-                    <div class="access-requirements">
-                        장문 기록 3회 이상 완료 시 입장 가능합니다.<br>
-                        현재: <span id="accessEntryCount">0</span>/3회 완료
-                    </div>
+                <div class="fire-container">
+                    <div class="logs"></div>
+                    <div class="fire" id="campfireFire"></div>
                 </div>
 
-                <!-- 캠프파이어 해금 상태 -->
-                <div class="campfire-unlocked" id="campfireUnlocked" style="display: none;">
-                    <div class="fire-container">
-                        <div class="logs" id="campfireLogs"></div>
-                        <div class="fire" id="campfireFire"></div>
-                    </div>
+                <div style="font-size: 14px; opacity: 0.8; margin-bottom: 20px;">
+                    Add more logs to stoke the fire
+                </div>
 
-                    <div class="campfire-subtitle">Add more logs to stoke the fire</div>
-
-                    <div class="campfire-input-area">
-                        <textarea 
-                            class="campfire-textarea" 
-                            id="campfireTextarea"
-                            placeholder="정말 길고 아름다운 일기를 쓰고 있다...">
-                        </textarea>
-                        
-                        <div class="campfire-tools">
-                            <button class="tool-btn" onclick="addEmoji()">😊</button>
-                            <button class="tool-btn">🎤</button>
-                            <button class="tool-btn">📷</button>
-                            <button class="btn" style="padding: 10px 20px; font-size: 14px;" onclick="saveCampfireEntry()">장작 추가</button>
+                <div style="width: 100%; flex: 1;">
+                    <textarea 
+                        style="width: 100%; height: 120px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 15px; color: white; font-size: 16px; resize: none; outline: none;"
+                        id="campfireTextarea"
+                        placeholder="정말 길고 아름다운 일기를 쓰고 있다...">
+                    </textarea>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                        <div>
+                            <button style="background: none; border: none; color: rgba(255, 255, 255, 0.7); font-size: 20px; cursor: pointer; margin-right: 15px;" onclick="addEmoji()">😊</button>
+                            <button style="background: none; border: none; color: rgba(255, 255, 255, 0.7); font-size: 20px; cursor: pointer; margin-right: 15px;">🎤</button>
+                            <button style="background: none; border: none; color: rgba(255, 255, 255, 0.7); font-size: 20px; cursor: pointer;">📷</button>
                         </div>
+                        <button class="btn" style="padding: 10px 20px; font-size: 14px;" onclick="saveCampfireEntry()">장작 추가</button>
                     </div>
                 </div>
             </div>
@@ -706,10 +885,21 @@
 
         <!-- 하단 네비게이션 -->
         <div class="bottom-nav">
-            <button class="nav-btn active" id="homeNavBtn" onclick="switchView('home')">🏠</button>
-            <button class="nav-btn" id="campfireNavBtn" onclick="switchView('campfire')">🔥</button>
-            <button class="nav-btn" onclick="showStats()">📊</button>
-            <button class="nav-btn" onclick="showSettings()">⚙️</button>
+            <button class="nav-btn active" id="homeNavBtn" onclick="switchView('home')">
+                🏠
+                <div class="notification-dot" id="homeNotification" style="display: none;"></div>
+            </button>
+            <button class="nav-btn" id="campfireNavBtn" onclick="switchView('campfire')">
+                🔥
+                <div class="notification-dot" id="campfireNotification" style="display: none;"></div>
+            </button>
+            <button class="nav-btn" onclick="showStats()">
+                📊
+                <div class="notification-dot" id="statsNotification"></div>
+            </button>
+            <button class="nav-btn" onclick="showSettings()">
+                ⚙️
+            </button>
         </div>
     </div>
 
@@ -718,42 +908,84 @@
         let state = {
             entryCount: 0,
             currentLength: 0,
-            probeActive: false,
+            currentEmotion: 'neutral',
+            streakDays: 1,
+            totalChars: 0,
+            lastEntryDate: null,
+            dockAdded: false,
+            widgetEnabled: false,
+            aiProbeActive: false,
+            dailyGoalMet: false,
             campfireUnlocked: false,
-            typingTimer: null,
-            lastTypingTime: 0
+            notificationPermission: false
         };
 
-        // AI 프로브 질문들
-        const probeQuestions = [
-            "조금 더 자세히 얘기해 줄래요?",
-            "그 순간 당신 머릿속엔 어떤 그림이 있었나요?",
-            "혹시 이 일이 다른 하루와 어떻게 달랐나요?",
-            "그때의 냄새나 소리까지 기억나나요?",
-            "이 상황이 지금의 나에게 어떤 의미를 주나요?",
-            "그때 느꼈던 감정을 한 단어로 표현한다면?",
-            "만약 친구에게 이 이야기를 한다면 어떻게 시작할까요?"
-        ];
+        // 감정별 AI 메시지
+        const aiMessages = {
+            neutral: "오늘도 함께 마음을 기록해봐요! 💫",
+            happy: "기분 좋은 에너지가 느껴져요! ✨ 이 순간을 더 자세히 기록해보세요!",
+            sad: "마음이 무거우시군요... 😔 천천히 털어놓으세요, 제가 들어줄게요",
+            angry: "화가 많이 나신 것 같아요 🔥 무엇이 이렇게 만들었는지 들려주세요",
+            calm: "평온한 마음이 느껴져요 🌸 이런 순간들을 소중히 기록해두세요",
+            excited: "흥미진진한 일이 있으신가봐요! 🎉 자세한 이야기를 들려주세요!"
+        };
+
+        // 감정별 프로브 질문
+        const emotionProbes = {
+            happy: [
+                "이 기쁜 순간을 더 오래 간직하려면 어떻게 해야 할까요?",
+                "누구와 이 기쁨을 나누고 싶으신가요?",
+                "이런 기분이 들게 만든 특별한 순간이 있나요?"
+            ],
+            sad: [
+                "힘든 마음이 느껴져요. 누군가 안아주면 좋겠나요?",
+                "이 감정이 언제부터 시작되었는지 기억나시나요?",
+                "지금 가장 필요한 것은 무엇일까요?"
+            ],
+            angry: [
+                "정말 속상하셨겠어요. 무엇이 가장 화나게 했나요?",
+                "이 상황을 어떻게 해결하고 싶으신가요?",
+                "화가 날 때 보통 어떻게 달래시나요?"
+            ],
+            calm: [
+                "평온한 마음이 좋네요. 어떤 일이 이런 기분을 만들어주었나요?",
+                "이 평화로운 순간에서 무엇을 느끼시나요?",
+                "이런 평온함을 더 자주 느끼려면?"
+            ],
+            excited: [
+                "흥미진진하네요! 이 설렘을 더 자세히 들려주세요!",
+                "이 기대감의 이유는 무엇인가요?",
+                "이런 에너지를 어떻게 활용하고 싶으신가요?"
+            ]
+        };
+
+        // 감정별 이모지
+        const emotionEmojis = {
+            neutral: '🌱',
+            happy: '😊',
+            sad: '😢',
+            angry: '😡',
+            calm: '😌',
+            excited: '🤩'
+        };
 
         // 초기화
         document.addEventListener('DOMContentLoaded', function() {
-            // 오프닝 애니메이션 제거
-            setTimeout(() => {
-                document.getElementById('openingOverlay').style.display = 'none';
-            }, 300);
-
-            // 시간 업데이트
             updateTime();
             setInterval(updateTime, 60000);
-
-            // 메인 텍스트에어리어 즉시 포커스 (1초 안에)
-            setTimeout(() => {
-                document.getElementById('mainTextarea').focus();
-            }, 400);
-
-            // 상태 로드
             loadState();
             updateUI();
+            checkDailyGoal();
+            scheduleNotifications();
+            
+            // 메인 텍스트에어리어 이벤트
+            const mainTextarea = document.getElementById('mainTextarea');
+            mainTextarea.addEventListener('input', handleTyping);
+            
+            // 5초 후 Dock 유도 (처음 사용자만)
+            if (!state.dockAdded) {
+                setTimeout(showDockPrompt, 5000);
+            }
         });
 
         // 시간 업데이트
@@ -763,179 +995,283 @@
                 now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
         }
 
-        // 메인 텍스트에어리어 이벤트
-        document.addEventListener('DOMContentLoaded', function() {
-            const mainTextarea = document.getElementById('mainTextarea');
-            const typingAura = document.getElementById('typingAura');
-            const lengthIndicator = document.getElementById('lengthIndicator');
+        // 실시간 타이핑 처리
+        function handleTyping() {
+            const text = this.value;
+            const length = text.length;
+            state.currentLength = length;
+
+            // 실시간 감정 분석 (시뮬레이션)
+            const emotion = analyzeEmotion(text);
+            updateEmotionFeedback(emotion);
+
+            // 길이 인디케이터 업데이트
+            updateLengthIndicator(length);
+
+            // AI 프로브 트리거
+            if (length >= 30 && length <= 100 && !state.aiProbeActive) {
+                triggerAIProbe(emotion);
+            } else if (length > 200 && state.aiProbeActive) {
+                hideAIProbe();
+            }
+
+            // 실시간 AI 메시지 업데이트
+            updateAIMessage(emotion, length);
+        }
+
+        // 감정 분석 (시뮬레이션)
+        function analyzeEmotion(text) {
+            const lowerText = text.toLowerCase();
+            
+            // 간단한 키워드 기반 감정 분석
+            if (lowerText.includes('기쁘') || lowerText.includes('행복') || lowerText.includes('좋') || lowerText.includes('웃')) {
+                return 'happy';
+            } else if (lowerText.includes('슬프') || lowerText.includes('우울') || lowerText.includes('힘들') || lowerText.includes('눈물')) {
+                return 'sad';
+            } else if (lowerText.includes('화') || lowerText.includes('짜증') || lowerText.includes('분노') || lowerText.includes('욕')) {
+                return 'angry';
+            } else if (lowerText.includes('평온') || lowerText.includes('편안') || lowerText.includes('차분') || lowerText.includes('조용')) {
+                return 'calm';
+            } else if (lowerText.includes('흥미') || lowerText.includes('기대') || lowerText.includes('설렘') || lowerText.includes('신나')) {
+                return 'excited';
+            } else {
+                return 'neutral';
+            }
+        }
+
+        // 감정 피드백 업데이트
+        function updateEmotionFeedback(emotion) {
+            if (emotion === state.currentEmotion) return;
+            
+            state.currentEmotion = emotion;
+            
+            // 오라 업데이트
+            const emotionAura = document.getElementById('emotionAura');
+            emotionAura.className = `emotion-aura ${emotion}`;
+            emotionAura.style.opacity = '1';
+            
+            // 이모지 업데이트
+            document.getElementById('emotionEmoji').textContent = emotionEmojis[emotion];
+            
+            // 캠프파이어 불꽃 업데이트
+            const campfireFire = document.getElementById('campfireFire');
+            campfireFire.className = `fire ${emotion}`;
+        }
+
+        // 길이 인디케이터 업데이트
+        function updateLengthIndicator(length) {
+            const indicator = document.getElementById('emotionIndicator');
             const lengthNumber = document.getElementById('lengthNumber');
+            
+            const percentage = Math.min((length / 500) * 100, 100);
+            lengthNumber.textContent = length;
+            
+            indicator.style.background = 
+                `conic-gradient(#ff6b35 ${percentage * 3.6}deg, rgba(255, 255, 255, 0.1) ${percentage * 3.6}deg)`;
 
-            mainTextarea.addEventListener('input', function() {
-                const length = this.value.length;
-                state.currentLength = length;
-
-                // 실시간 타이핑 오라 효과
-                typingAura.classList.add('active');
-                state.lastTypingTime = Date.now();
-                
-                clearTimeout(state.typingTimer);
-                state.typingTimer = setTimeout(() => {
-                    typingAura.classList.remove('active');
+            // 마일스톤 효과
+            if (length === 100 || length === 200 || length === 300 || length === 500) {
+                indicator.style.animation = 'milestoneGlow 1s ease';
+                setTimeout(() => {
+                    indicator.style.animation = 'none';
                 }, 1000);
+                showToast(`🎉 ${length}자 달성! 불꽃이 더 활활 타오릅니다!`);
+            }
+        }
 
-                // 길이 인디케이터 업데이트
-                const percentage = Math.min((length / 500) * 100, 100);
-                lengthNumber.textContent = length;
-                lengthIndicator.style.background = 
-                    `conic-gradient(#ff6b35 ${percentage * 3.6}deg, rgba(255, 255, 255, 0.1) ${percentage * 3.6}deg)`;
-
-                // 마일스톤 효과
-                if (length === 100 || length === 200 || length === 300) {
-                    lengthIndicator.classList.add('milestone');
-                    setTimeout(() => lengthIndicator.classList.remove('milestone'), 1000);
-                    
-                    // 장작 떨어지는 효과 (시뮬레이션)
-                    if (length >= 200) {
-                        showToast(`🔥 ${length}자 달성! 불꽃이 더 활활 타오릅니다!`);
-                    }
-                }
-
-                // AI 프로브 트리거
-                if (length >= 30 && length <= 80 && !state.probeActive) {
-                    triggerProbe();
-                } else if (length > 200 && state.probeActive) {
-                    hideProbe();
-                }
-
-                // 타이핑 속도 감지해서 장작 효과
-                if (Date.now() - state.lastTypingTime < 100) {
-                    // 빠른 타이핑일 때 추가 효과
-                    if (Math.random() < 0.1) {
-                        createTypingParticle();
-                    }
-                }
-            });
-
-            mainTextarea.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.key === 'Enter') {
-                    saveEntry();
-                }
-            });
-        });
-
-        // AI 프로브 시스템
-        function triggerProbe() {
-            if (state.probeActive) return;
+        // AI 메시지 업데이트
+        function updateAIMessage(emotion, length) {
+            const aiMessage = document.getElementById('aiMessage');
             
-            state.probeActive = true;
-            const probeSystem = document.getElementById('probeSystem');
-            const probeQuestion = document.getElementById('probeQuestion');
+            if (length > 200) {
+                aiMessage.textContent = "와! 정말 깊이 있는 이야기네요! 계속 들려주세요! ✨";
+            } else if (length > 100) {
+                aiMessage.textContent = "점점 더 마음이 열리는 것 같아요 💖";
+            } else {
+                aiMessage.textContent = aiMessages[emotion];
+            }
+        }
+
+        // AI 프로브 트리거
+        function triggerAIProbe(emotion) {
+            if (state.aiProbeActive) return;
             
-            const randomQuestion = probeQuestions[Math.floor(Math.random() * probeQuestions.length)];
+            state.aiProbeActive = true;
+            const probeSystem = document.getElementById('aiProbeSystem');
+            const probeQuestion = document.getElementById('aiProbeQuestion');
+            
+            const questions = emotionProbes[emotion] || emotionProbes.neutral;
+            const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+            
             probeQuestion.textContent = randomQuestion;
-            
             probeSystem.classList.add('show');
         }
 
-        function hideProbe() {
-            state.probeActive = false;
-            document.getElementById('probeSystem').classList.remove('show');
-        }
-
-        // 타이핑 파티클 효과
-        function createTypingParticle() {
-            const particle = document.createElement('div');
-            particle.style.cssText = `
-                position: absolute;
-                width: 4px;
-                height: 4px;
-                background: #ff6b35;
-                border-radius: 50%;
-                top: ${Math.random() * 200 + 50}px;
-                left: ${Math.random() * 300 + 50}px;
-                opacity: 1;
-                animation: particleFade 1s ease-out forwards;
-                pointer-events: none;
-                z-index: 5;
-            `;
-            
-            document.querySelector('.main-input-area').appendChild(particle);
-            
-            setTimeout(() => {
-                if (particle.parentNode) {
-                    particle.parentNode.removeChild(particle);
-                }
-            }, 1000);
+        // AI 프로브 숨기기
+        function hideAIProbe() {
+            state.aiProbeActive = false;
+            document.getElementById('aiProbeSystem').classList.remove('show');
         }
 
         // 저장 기능
         function saveEntry() {
             const mainText = document.getElementById('mainTextarea').value;
-            const probeText = document.getElementById('probeInput').value;
+            const probeText = document.getElementById('aiProbeInput').value;
             
             if (mainText.length < 20) {
-                showToast("⚠️ 최소 20자 이상 작성해주세요");
+                showToast("⚠️ Luna가 더 많은 이야기를 듣고 싶어해요! (최소 20자)");
                 return;
             }
 
-            // 기록 카운트 증가
+            // 상태 업데이트
             state.entryCount++;
+            state.totalChars += mainText.length + probeText.length;
+            state.lastEntryDate = new Date().toDateString();
             
-            // 감각적 보상 효과
-            const textarea = document.getElementById('mainTextarea');
-            textarea.style.animation = 'saveGlow 1s ease-out';
+            // 연속 일수 계산
+            updateStreak();
             
-            // 길이에 따른 차등 보상
-            if (mainText.length >= 300) {
-                showToast("🔥 장작이 가득 쌓였어요, 불이 활활 타오릅니다!");
-                createFireworks();
-            } else if (mainText.length >= 200) {
-                showToast("✨ 오늘의 기록이 불을 크게 밝혔습니다!");
-            } else {
-                showToast("💫 기록이 저장되었습니다");
+            // 일일 목표 달성 체크
+            if (mainText.length >= 100) {
+                state.dailyGoalMet = true;
+                showToast("🎯 오늘의 목표 달성! Luna가 정말 기뻐해요!");
             }
 
-            // 색온도 변화 효과
-            document.body.style.filter = 'hue-rotate(10deg) brightness(1.1)';
-            setTimeout(() => {
-                document.body.style.filter = 'none';
-            }, 500);
+            // 감정 기반 보상 메시지
+            const emotion = state.currentEmotion;
+            let rewardMessage = "";
+            
+            if (mainText.length >= 500) {
+                rewardMessage = "🔥🔥🔥 놀라운 깊이의 기록이에요! Luna가 감동했어요!";
+                createFireworks();
+            } else if (mainText.length >= 300) {
+                rewardMessage = emotion === 'happy' ? 
+                    "✨ 기쁜 마음이 글에 가득해요! 행복 전염되네요!" :
+                    emotion === 'sad' ?
+                    "💙 아픈 마음을 나눠주셔서 고마워요. Luna가 함께 있어요" :
+                    "🌟 정말 진솔한 이야기네요. Luna가 깊이 공감해요";
+            } else if (mainText.length >= 200) {
+                rewardMessage = "💫 Luna가 당신의 마음을 더 잘 이해하게 되었어요!";
+            } else {
+                rewardMessage = "🌱 소중한 기록이에요. 내일도 함께해요!";
+            }
+
+            showToast(rewardMessage);
+
+            // 캠프파이어 해금 체크
+            if (state.entryCount >= 3 && !state.campfireUnlocked) {
+                state.campfireUnlocked = true;
+                showToast("🔥 축하해요! 캠프파이어가 해금되었습니다!");
+                document.getElementById('campfireBtn').disabled = false;
+            }
 
             // 초기화
-            textarea.value = '';
-            document.getElementById('probeInput').value = '';
-            hideProbe();
-            resetLengthIndicator();
+            document.getElementById('mainTextarea').value = '';
+            document.getElementById('aiProbeInput').value = '';
+            hideAIProbe();
+            resetIndicators();
             
             // 상태 저장 및 UI 업데이트
             saveState();
             updateUI();
             
-            // 애니메이션 초기화
+            // Dock 유도 (3번째 저장 후)
+            if (state.entryCount === 3 && !state.dockAdded) {
+                setTimeout(showDockPrompt, 1000);
+            }
+
+            // 알림 스케줄링
+            scheduleNotifications();
+        }
+
+        // 연속 일수 업데이트
+        function updateStreak() {
+            const today = new Date().toDateString();
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            
+            if (state.lastEntryDate === yesterday) {
+                state.streakDays++;
+            } else if (state.lastEntryDate !== today) {
+                state.streakDays = 1;
+            }
+        }
+
+        // Dock 프롬프트 표시
+        function showDockPrompt() {
+            document.getElementById('dockPromptOverlay').style.display = 'flex';
+        }
+
+        // Dock 프롬프트 닫기
+        function closeDockPrompt() {
+            document.getElementById('dockPromptOverlay').style.display = 'none';
+        }
+
+        // Dock 추가
+        function addToDock() {
+            state.dockAdded = true;
+            saveState();
+            closeDockPrompt();
+            showToast("📱 Dock에 추가됨! 이제 Luna를 더 자주 만날 수 있어요!");
+            
+            // 보너스 제공
             setTimeout(() => {
-                textarea.style.animation = 'none';
-            }, 1000);
+                showToast("🎁 Dock 보너스: 오늘 불꽃이 2배로 밝아집니다!");
+            }, 2000);
+        }
+
+        // 일일 목표 체크
+        function checkDailyGoal() {
+            const today = new Date().toDateString();
+            if (state.lastEntryDate !== today) {
+                state.dailyGoalMet = false;
+            }
+
+            // 목표 달성하지 않은 경우 알림
+            if (!state.dailyGoalMet) {
+                document.getElementById('homeNotification').style.display = 'block';
+            }
+        }
+
+        // 알림 스케줄링
+        function scheduleNotifications() {
+            if (!state.notificationPermission) {
+                // 알림 권한 요청 (시뮬레이션)
+                setTimeout(() => {
+                    showToast("🔔 Luna가 매일 찾아갈 수 있게 알림을 허용해주세요!");
+                }, 3000);
+                state.notificationPermission = true;
+            }
+
+            // 매일 저녁 9시 알림 (시뮬레이션)
+            const now = new Date();
+            const tonight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 21, 0, 0);
+            
+            if (tonight > now && !state.dailyGoalMet) {
+                setTimeout(() => {
+                    showToast("🌅 Luna: 오늘 하루는 어땠나요? 함께 기록해봐요!");
+                }, 5000); // 데모용 5초 후
+            }
         }
 
         // 폭죽 효과
         function createFireworks() {
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 12; i++) {
                 setTimeout(() => {
                     const firework = document.createElement('div');
                     firework.style.cssText = `
                         position: fixed;
-                        width: 6px;
-                        height: 6px;
-                        background: #ff6b35;
+                        width: 8px;
+                        height: 8px;
+                        background: ${['#ff6b35', '#ffd700', '#ff69b4', '#00ff00'][Math.floor(Math.random() * 4)]};
                         border-radius: 50%;
                         top: 50%;
                         left: 50%;
-                        animation: fireworkExplode 1.5s ease-out forwards;
+                        animation: fireworkExplode 2s ease-out forwards;
                         pointer-events: none;
                         z-index: 1500;
                     `;
                     
-                    const angle = (360 / 8) * i;
+                    const angle = (360 / 12) * i;
                     firework.style.setProperty('--angle', angle + 'deg');
                     
                     document.body.appendChild(firework);
@@ -944,29 +1280,46 @@
                         if (firework.parentNode) {
                             firework.parentNode.removeChild(firework);
                         }
-                    }, 1500);
+                    }, 2000);
                 }, i * 100);
             }
         }
 
-        // 길이 인디케이터 리셋
-        function resetLengthIndicator() {
-            const lengthIndicator = document.getElementById('lengthIndicator');
+        // 인디케이터 리셋
+        function resetIndicators() {
+            const indicator = document.getElementById('emotionIndicator');
             const lengthNumber = document.getElementById('lengthNumber');
+            const emotionAura = document.getElementById('emotionAura');
             
             lengthNumber.textContent = '0';
-            lengthIndicator.style.background = 
-                'conic-gradient(#ff6b35 0deg, rgba(255, 255, 255, 0.1) 0deg)';
+            indicator.style.background = 'conic-gradient(#ff6b35 0deg, rgba(255, 255, 255, 0.1) 0deg)';
+            emotionAura.style.opacity = '0';
+            emotionAura.className = 'emotion-aura';
+            
+            document.getElementById('emotionEmoji').textContent = '🌱';
             state.currentLength = 0;
+            state.currentEmotion = 'neutral';
         }
 
-        // 캠프파이어 접근 시도
-        function tryAccessCampfire() {
+        // UI 업데이트
+        function updateUI() {
+            document.getElementById('streakCounter').textContent = `${state.streakDays}일 연속`;
+            document.getElementById('streakBadge').textContent = `🔥 ${state.streakDays}일차`;
+            document.getElementById('totalDays').textContent = `${state.streakDays}일`;
+            document.getElementById('totalChars').textContent = `${state.totalChars}자`;
+            
             if (state.entryCount >= 3) {
-                state.campfireUnlocked = true;
-                switchView('campfire');
+                document.getElementById('campfireStatus').textContent = '해금됨! 🔥';
+                document.getElementById('campfireBtn').disabled = false;
             } else {
-                showToast(`🔒 캠프파이어 입장까지 ${3 - state.entryCount}회 더 기록이 필요합니다`);
+                document.getElementById('campfireStatus').textContent = `${3 - state.entryCount}회 더 필요`;
+            }
+
+            // 알림 점 업데이트
+            if (!state.dailyGoalMet) {
+                document.getElementById('homeNotification').style.display = 'block';
+            } else {
+                document.getElementById('homeNotification').style.display = 'none';
             }
         }
 
@@ -981,100 +1334,31 @@
             if (view === 'home') {
                 document.getElementById('homeView').classList.add('active');
                 document.getElementById('homeNavBtn').classList.add('active');
-                setTimeout(() => document.getElementById('mainTextarea').focus(), 100);
             } else if (view === 'campfire') {
                 document.getElementById('campfireView').classList.add('active');
                 document.getElementById('campfireNavBtn').classList.add('active');
-                updateCampfireView();
             }
         }
 
-        // 캠프파이어 뷰 업데이트
-        function updateCampfireView() {
-            const accessDenied = document.getElementById('accessDenied');
-            const campfireUnlocked = document.getElementById('campfireUnlocked');
-            const accessEntryCount = document.getElementById('accessEntryCount');
-            
-            accessEntryCount.textContent = state.entryCount;
-            
+        // 캠프파이어 접근
+        function tryAccessCampfire() {
             if (state.entryCount >= 3) {
-                accessDenied.style.display = 'none';
-                campfireUnlocked.style.display = 'block';
-                
-                // 캠프파이어 텍스트에어리어에 이벤트 추가
-                const campfireTextarea = document.getElementById('campfireTextarea');
-                campfireTextarea.addEventListener('input', function() {
-                    updateCampfireFire(this.value.length);
-                });
+                switchView('campfire');
             } else {
-                accessDenied.style.display = 'block';
-                campfireUnlocked.style.display = 'none';
+                showToast(`🔒 Luna: 캠프파이어까지 ${3 - state.entryCount}회 더 기록이 필요해요!`);
             }
-        }
-
-        // 캠프파이어 불꽃 업데이트
-        function updateCampfireFire(length) {
-            const fire = document.getElementById('campfireFire');
-            
-            if (length > 200) {
-                fire.classList.add('enhanced');
-                // 장작 추가 애니메이션
-                if (length % 100 === 0) {
-                    dropLog();
-                }
-            } else {
-                fire.classList.remove('enhanced');
-            }
-        }
-
-        // 장작 떨어뜨리기 애니메이션
-        function dropLog() {
-            const logsContainer = document.getElementById('campfireLogs');
-            const log = document.createElement('div');
-            log.className = 'dynamic-log';
-            log.style.left = Math.random() * 60 + 'px';
-            
-            logsContainer.appendChild(log);
-            
-            setTimeout(() => {
-                if (log.parentNode) {
-                    log.parentNode.removeChild(log);
-                }
-            }, 1000);
         }
 
         // 캠프파이어 저장
         function saveCampfireEntry() {
-            const campfireText = document.getElementById('campfireTextarea').value;
+            const text = document.getElementById('campfireTextarea').value;
             
-            if (campfireText.length < 50) {
-                showToast("⚠️ 캠프파이어에는 최소 50자 이상 작성해주세요");
+            if (text.length < 50) {
+                showToast("🔥 캠프파이어에는 더 깊은 이야기를 들려주세요! (최소 50자)");
                 return;
             }
 
-            // 강화된 불꽃 효과
-            const fire = document.getElementById('campfireFire');
-            fire.style.transform = 'translateX(-50%) scale(1.3)';
-            fire.style.filter = 'brightness(1.8) saturate(1.2)';
-            
-            setTimeout(() => {
-                fire.style.transform = 'translateX(-50%) scale(1)';
-                fire.style.filter = 'brightness(1)';
-            }, 1500);
-
-            // 여러 장작 떨어뜨리기
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => dropLog(), i * 200);
-            }
-
-            if (campfireText.length >= 500) {
-                showToast("🔥🔥🔥 캠프파이어가 장대하게 타오릅니다! 모든 이들에게 따뜻함을 전해줍니다!");
-            } else if (campfireText.length >= 300) {
-                showToast("🔥🔥 장작이 가득 쌓였어요, 불이 활활 타오릅니다!");
-            } else {
-                showToast("🔥 캠프파이어에 따뜻한 이야기가 추가되었습니다");
-            }
-
+            showToast("🔥 따뜻한 이야기가 캠프파이어에 추가되었습니다!");
             document.getElementById('campfireTextarea').value = '';
         }
 
@@ -1083,46 +1367,36 @@
             const emojis = ['😊', '😌', '🤔', '😢', '😡', '😱', '😴', '🥰', '🎉', '✨', '🌟', '💫'];
             const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
             
-            const campfireTextarea = document.getElementById('campfireTextarea');
-            const cursorPos = campfireTextarea.selectionStart;
-            const textBefore = campfireTextarea.value.substring(0, cursorPos);
-            const textAfter = campfireTextarea.value.substring(cursorPos);
+            const textarea = document.getElementById('campfireTextarea');
+            const cursorPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, cursorPos);
+            const textAfter = textarea.value.substring(cursorPos);
             
-            campfireTextarea.value = textBefore + randomEmoji + ' ' + textAfter;
-            campfireTextarea.setSelectionRange(cursorPos + 2, cursorPos + 2);
-            campfireTextarea.focus();
-        }
-
-        // UI 업데이트
-        function updateUI() {
-            const entryCountEl = document.getElementById('entryCount');
-            const campfireStatusEl = document.getElementById('campfireStatus');
-            const campfireBtn = document.getElementById('campfireBtn');
-            
-            entryCountEl.textContent = state.entryCount;
-            
-            if (state.entryCount >= 3) {
-                campfireStatusEl.textContent = '(캠프파이어 해금됨! 🔥)';
-                campfireStatusEl.style.color = '#ff6b35';
-                campfireBtn.disabled = false;
-                campfireBtn.textContent = '캠프파이어';
-            } else {
-                const remaining = 3 - state.entryCount;
-                campfireStatusEl.textContent = `(캠프파이어 잠금: ${remaining}회 더 필요)`;
-                campfireBtn.disabled = true;
-            }
+            textarea.value = textBefore + randomEmoji + ' ' + textAfter;
+            textarea.setSelectionRange(cursorPos + 2, cursorPos + 2);
+            textarea.focus();
         }
 
         // 상태 저장/로드
         function saveState() {
-            localStorage.setItem('sunset_state', JSON.stringify(state));
+            localStorage.setItem('sunset_ai_state', JSON.stringify(state));
         }
 
         function loadState() {
-            const saved = localStorage.getItem('sunset_state');
+            const saved = localStorage.getItem('sunset_ai_state');
             if (saved) {
                 state = { ...state, ...JSON.parse(saved) };
             }
+        }
+
+        // 기타 기능들
+        function showStats() {
+            const avgLength = state.entryCount > 0 ? Math.round(state.totalChars / state.entryCount) : 0;
+            showToast(`📊 평균 ${avgLength}자씩 ${state.entryCount}회 기록. Luna 만족도: ${Math.min(100, state.streakDays * 10)}%`);
+        }
+
+        function showSettings() {
+            showToast("⚙️ Luna 설정: 알림 ON, 감정 분석 ON, Dock 연동 " + (state.dockAdded ? "ON" : "OFF"));
         }
 
         // 토스트 메시지
@@ -1140,31 +1414,16 @@
                         document.body.removeChild(toast);
                     }
                 }, 300);
-            }, 3000);
-        }
-
-        // 추가 기능들
-        function showStats() {
-            const totalChars = state.entryCount * 150; // 평균 추정
-            showToast(`📊 총 ${state.entryCount}회 기록, 약 ${totalChars}자 작성`);
-        }
-
-        function showSettings() {
-            showToast("⚙️ 설정 기능은 준비 중입니다");
+            }, 4000);
         }
 
         // CSS 애니메이션 추가
         const style = document.createElement('style');
         style.textContent = `
-            @keyframes saveGlow {
-                0% { box-shadow: 0 0 0 rgba(255,107,53,0); }
-                50% { box-shadow: 0 0 30px rgba(255,107,53,0.8); }
-                100% { box-shadow: 0 0 0 rgba(255,107,53,0); }
-            }
-            
-            @keyframes particleFade {
-                0% { opacity: 1; transform: scale(1); }
-                100% { opacity: 0; transform: scale(0) translateY(-20px); }
+            @keyframes milestoneGlow {
+                0% { transform: scale(1); box-shadow: 0 0 0 rgba(255,107,53,0.7); }
+                50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255,107,53,0.7); }
+                100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,107,53,0.7); }
             }
             
             @keyframes fireworkExplode {
@@ -1172,8 +1431,8 @@
                 100% { 
                     opacity: 0; 
                     transform: translate(-50%, -50%) scale(0) 
-                               translateX(calc(cos(var(--angle)) * 100px))
-                               translateY(calc(sin(var(--angle)) * 100px));
+                               translateX(calc(cos(var(--angle)) * 150px))
+                               translateY(calc(sin(var(--angle)) * 150px));
                 }
             }
         `;
@@ -1183,23 +1442,7 @@
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'Enter') {
                 e.preventDefault();
-                if (document.getElementById('homeView').classList.contains('active')) {
-                    saveEntry();
-                } else if (document.getElementById('campfireView').classList.contains('active')) {
-                    saveCampfireEntry();
-                }
-            }
-            
-            if (e.ctrlKey && e.key === '1') {
-                e.preventDefault();
-                switchView('home');
-            }
-            
-            if (e.ctrlKey && e.key === '2') {
-                e.preventDefault();
-                if (state.entryCount >= 3) {
-                    switchView('campfire');
-                }
+                saveEntry();
             }
         });
     </script>
