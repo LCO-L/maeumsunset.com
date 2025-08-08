@@ -1,4 +1,326 @@
-<!DOCTYPE html>
+// 캠프파이어 데이터 (시뮬레이션)
+        let campfirePosts = [
+            {
+                id: 1,
+                content: "오늘 첫눈을 보면서 어린 시절이 생각났어요. 그때는 모든 게 신기하고 아름다웠는데...",
+                emotion: "nostalgic",
+                weather: "snowy",
+                timestamp: new Date(Date.now() - 3600000),
+                likes: 5,
+                reactions: { "❤️": 3, "🤗": 2 }
+            },
+            {
+                id: 2,
+                content: "비 오는 날이면 항상 창가에 앉아서 커피를 마시게 돼요. 이 평온함이 좋아요.",
+                emotion: "calm",
+                weather: "rainy",
+                timestamp: new Date(Date.now() - 7200000),
+                likes: 8,
+                reactions: { "☕": 4, "💙": 2, "🌧️": 2 }
+            },
+            {
+                id: 3,
+                content: "친구들과 공원에서 피크닉! 햇살이 따뜻하고 바람이 살랑살랑~ 이런 날이 행복이죠 😊",
+                emotion: "happy",
+                weather: "sunny", 
+                timestamp: new Date(Date.now() - 10800000),
+                likes: 12,
+                reactions: { "😊": 5, "☀️": 3, "🌸": 4 }
+            },
+            {
+                id: 4,
+                content: "혼자 있는 시간이 필요했어요. 조용한 카페에서 책 읽으며 마음을 정리하는 중이에요.",
+                emotion: "calm",
+                weather: "cloudy",
+                timestamp: new Date(Date.now() - 14400000),
+                likes: 6,
+                reactions: { "📚": 3, "💭": 2, "☁️": 1 }
+            },
+            {
+                id: 5,
+                content: "새로운 도전을 시작했어요! 두렵지만 설레는 마음이 더 커요. 화이팅!",
+                emotion: "energetic",
+                weather: "sunny",
+                timestamp: new Date(Date.now() - 18000000),
+                likes: 15,
+                reactions: { "💪": 6, "⚡": 4, "🔥": 5 }
+            },
+            {
+                id: 6,
+                content: "오늘은 조금 힘든 하루였어요. 하지만 내일은 분명 더 나을 거예요.",
+                emotion: "sad",
+                weather: "cloudy",
+                timestamp: new Date(Date.now() - 21600000),
+                likes: 9,
+                reactions: { "🤗": 4, "💙": 3, "🌈": 2 }
+            }
+        ];
+
+        // 뷰 전환 함수
+        function showView(viewName) {
+            // 모든 뷰 숨기기
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('statsView').style.display = 'none';
+            document.getElementById('campfireView').style.display = 'none';
+            
+            // 모든 네비게이션 버튼 비활성화
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // 선택된 뷰 표시
+            if (viewName === 'home') {
+                document.getElementById('homeView').style.display = 'block';
+                document.querySelectorAll('.nav-btn')[0].classList.add('active');
+                setTimeout(() => document.getElementById('mainTextarea').focus(), 100);
+            } else if (viewName === 'stats') {
+                document.getElementById('statsView').style.display = 'block';
+                document.querySelectorAll('.nav-btn')[2].classList.add('active');
+                updateStatsView();
+            } else if (viewName === 'campfire') {
+                document.getElementById('campfireView').style.display = 'block';
+                document.querySelectorAll('.nav-btn')[1].classList.add('active');
+                updateCampfireView();
+            }
+        }
+
+        // 통계 뷰 업데이트
+        function updateStatsView() {
+            const stats = calculateStats();
+            
+            document.getElementById('totalEntries').textContent = stats.totalEntries;
+            document.getElementById('avgLength').textContent = stats.avgLength;
+            document.getElementById('streakDays').textContent = stats.streakDays;
+            document.getElementById('topEmotion').textContent = stats.topEmotionIcon;
+            
+            // 감정 차트 업데이트
+            updateEmotionChart(stats.emotionCounts);
+            
+            // 날씨-감정 매트릭스 업데이트
+            updateWeatherMatrix(stats.weatherEmotions);
+            
+            // 시간대별 차트 업데이트
+            updateTimeChart(stats.timeActivity);
+        }
+
+        function calculateStats() {
+            if (entryHistory.length === 0) {
+                return {
+                    totalEntries: 0,
+                    avgLength: 0,
+                    streakDays: 0,
+                    topEmotionIcon: '😊',
+                    emotionCounts: {},
+                    weatherEmotions: {},
+                    timeActivity: {}
+                };
+            }
+            
+            const emotionCounts = {};
+            const weatherEmotions = {};
+            const timeActivity = Array(24).fill(0);
+            let totalLength = 0;
+            
+            entryHistory.forEach(entry => {
+                // 감정 카운트
+                emotionCounts[entry.emotion] = (emotionCounts[entry.emotion] || 0) + 1;
+                
+                // 날씨-감정 조합
+                const weatherKey = `${entry.weather?.type || 'unknown'}_${entry.emotion}`;
+                weatherEmotions[weatherKey] = (weatherEmotions[weatherKey] || 0) + 1;
+                
+                // 시간대별 활동
+                const hour = new Date(entry.timestamp).getHours();
+                timeActivity[hour]++;
+                
+                // 총 글자 수
+                totalLength += entry.text.length;
+            });
+            
+            const topEmotion = Object.keys(emotionCounts).reduce((a, b) => 
+                emotionCounts[a] > emotionCounts[b] ? a : b, 'happy');
+            
+            const emotionIcons = {
+                happy: '😊',
+                sad: '😢', 
+                calm: '😌',
+                energetic: '⚡',
+                nostalgic: '🥀'
+            };
+            
+            return {
+                totalEntries: entryHistory.length,
+                avgLength: Math.round(totalLength / entryHistory.length),
+                streakDays: calculateStreak(),
+                topEmotionIcon: emotionIcons[topEmotion] || '😊',
+                emotionCounts,
+                weatherEmotions,
+                timeActivity
+            };
+        }
+
+        function calculateStreak() {
+            // 연속 기록 일수 계산 (간단한 버전)
+            const today = new Date();
+            let streak = 0;
+            
+            for (let i = 0; i < 30; i++) {
+                const checkDate = new Date(today);
+                checkDate.setDate(today.getDate() - i);
+                
+                const hasEntry = entryHistory.some(entry => {
+                    const entryDate = new Date(entry.timestamp);
+                    return entryDate.toDateString() === checkDate.toDateString();
+                });
+                
+                if (hasEntry) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            
+            return streak;
+        }
+
+        function updateEmotionChart(emotionCounts) {
+            const chartContainer = document.getElementById('emotionChart');
+            const emotions = {
+                happy: { icon: '😊', label: '기쁨' },
+                calm: { icon: '😌', label: '평온' },
+                energetic: { icon: '⚡', label: '활기' },
+                sad: { icon: '😢', label: '슬픔' },
+                nostalgic: { icon: '🥀', label: '그리움' }
+            };
+            
+            const maxCount = Math.max(...Object.values(emotionCounts), 1);
+            
+            chartContainer.innerHTML = Object.keys(emotions).map(emotion => {
+                const count = emotionCounts[emotion] || 0;
+                const percentage = (count / maxCount) * 100;
+                
+                return `
+                    <div class="emotion-bar">
+                        <div class="emotion-icon">${emotions[emotion].icon}</div>
+                        <div class="emotion-progress">
+                            <div class="emotion-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="emotion-count">${count}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateWeatherMatrix(weatherEmotions) {
+            const matrixContainer = document.getElementById('weatherMatrix');
+            const weathers = ['sunny', 'rainy', 'cloudy', 'snowy'];
+            const emotions = ['happy', 'calm', 'energetic', 'sad'];
+            
+            const weatherIcons = {
+                sunny: '☀️',
+                rainy: '🌧️', 
+                cloudy: '☁️',
+                snowy: '❄️'
+            };
+            
+            const emotionIcons = {
+                happy: '😊',
+                calm: '😌',
+                energetic: '⚡',
+                sad: '😢'
+            };
+            
+            matrixContainer.innerHTML = weathers.map(weather => 
+                emotions.map(emotion => {
+                    const key = `${weather}_${emotion}`;
+                    const count = weatherEmotions[key] || 0;
+                    const isActive = count > 0;
+                    
+                    return `
+                        <div class="matrix-cell ${isActive ? 'active' : ''}">
+                            <div>${weatherIcons[weather]}</div>
+                            <div>${emotionIcons[emotion]}</div>
+                            <div style="font-size: 10px; margin-top: 2px;">${count}</div>
+                        </div>
+                    `;
+                }).join('')
+            ).join('');
+        }
+
+        function updateTimeChart(timeActivity) {
+            const chartContainer = document.getElementById('timeChart');
+            const maxActivity = Math.max(...timeActivity, 1);
+            
+            chartContainer.innerHTML = timeActivity.map((count, hour) => {
+                const height = (count / maxActivity) * 60; // 최대 60px
+                const displayHour = hour === 0 ? '12AM' : 
+                                 hour < 12 ? `${hour}AM` : 
+                                 hour === 12 ? '12PM' : `${hour-12}PM`;
+                
+                return `
+                    <div class="time-bar" style="height: ${height}px;">
+                        <div class="time-label">${hour % 6 === 0 ? displayHour : ''}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 캠프파이어 뷰 업데이트  
+        function updateCampfireView() {
+            const container = document.getElementById('stickyNotesContainer');
+            
+            container.innerHTML = campfirePosts.map(post => {
+                const emotionIcons = {
+                    happy: '😊',
+                    sad: '😢',
+                    calm: '😌', 
+                    energetic: '⚡',
+                    nostalgic: '🥀'
+                };
+                
+                const weatherIcons = {
+                    sunny: '☀️',
+                    rainy: '🌧️',
+                    cloudy: '☁️',
+                    snowy: '❄️'
+                };
+                
+                const timeAgo = getTimeAgo(post.timestamp);
+                
+                return `
+                    <div class="sticky-note" onclick="interactWithPost(${post.id})">
+                        <div class="note-content">${post.content}</div>
+                        <div class="note-meta">
+                            <div class="note-emotion">
+                                <span>${emotionIcons[post.emotion]}</span>
+                                <span class="note-weather">${weatherIcons[post.weather]}</span>
+                            </div>
+                            <div class="note-time">${timeAgo}</div>
+                        </div>
+                        <div class="reaction-buttons">
+                            ${Object.keys(post.reactions).map(emoji => 
+                                `<button class="reaction-btn" onclick="addReaction(${post.id}, '${emoji}')">${emoji}${post.reactions[emoji]}</button>`
+                            ).join('')}
+                            <button class="note-like-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
+                                ❤️ ${post.likes}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const diff = now - new Date(timestamp);
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            
+            if (hours < 1) return '방금 전';
+            if (hours < 24) return `${hours}시간 전`;
+            const days = Math.floor(hours / 24);
+            return `${days}일 전`;
+        }
+
+        function interactWithPost(postId) {
+            // 포스트 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -427,13 +749,353 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* 반응형 */
-        @media (max-width: 480px) {
-            .phone-container {
-                width: 100vw;
-                height: 100vh;
-                border-radius: 0;
-            }
+        /* 통계 화면 스타일 */
+        .stats-view {
+            height: calc(100% - 80px);
+            color: white;
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+
+        .stats-header h2 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 25px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255,107,53,0.2);
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ff6b35;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .chart-container, .weather-emotion-matrix, .time-activity {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .emotion-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .emotion-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .emotion-icon {
+            width: 30px;
+            font-size: 16px;
+        }
+
+        .emotion-progress {
+            flex: 1;
+            height: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .emotion-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .emotion-count {
+            font-size: 12px;
+            opacity: 0.8;
+            min-width: 20px;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .matrix-cell {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .matrix-cell.active {
+            background: rgba(255,107,53,0.3);
+            transform: scale(1.05);
+        }
+
+        .time-chart {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            height: 80px;
+            gap: 4px;
+        }
+
+        .time-bar {
+            flex: 1;
+            background: rgba(255,107,53,0.3);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .time-bar:hover {
+            background: rgba(255,107,53,0.6);
+        }
+
+        .time-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        /* 캠프파이어 화면 스타일 */
+        .campfire-view {
+            height: calc(100% - 80px);
+            color: white;
+            overflow-y: auto;
+            padding-bottom: 20px;
+        }
+
+        .campfire-flame-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .campfire-flame {
+            display: inline-block;
+            width: 60px;
+            height: 80px;
+            background: radial-gradient(circle, #ff6b35 0%, #ff8c42 50%, #ffd662 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: flameFlicker 2s ease-in-out infinite alternate;
+            margin-bottom: 20px;
+        }
+
+        @keyframes flameFlicker {
+            0% { transform: scale(1) rotate(-1deg); }
+            100% { transform: scale(1.1) rotate(1deg); }
+        }
+
+        .sticky-notes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+            min-height: 300px;
+        }
+
+        .sticky-note {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            border-radius: 8px;
+            padding: 15px;
+            color: #2d3436;
+            font-size: 13px;
+            line-height: 1.4;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: rotate(-1deg);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sticky-note:nth-child(even) {
+            transform: rotate(1deg);
+            background: linear-gradient(135deg, #a8e6cf 0%, #88d8c0 100%);
+        }
+
+        .sticky-note:nth-child(3n) {
+            background: linear-gradient(135deg, #ffd3e1 0%, #fd79a8 100%);
+            transform: rotate(-0.5deg);
+        }
+
+        .sticky-note:nth-child(4n) {
+            background: linear-gradient(135deg, #e0aaff 0%, #c77dff 100%);
+            transform: rotate(0.8deg);
+        }
+
+        .sticky-note:hover {
+            transform: rotate(0deg) scale(1.05);
+            z-index: 10;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .note-content {
+            flex: 1;
+            margin-bottom: 10px;
+        }
+
+        .note-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            opacity: 0.7;
+            margin-top: auto;
+        }
+
+        .note-emotion {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .note-weather {
+            font-size: 12px;
+        }
+
+        .note-time {
+            font-size: 9px;
+        }
+
+        .new-post-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .campfire-textarea {
+            width: 100%;
+            min-height: 100px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .campfire-textarea:focus {
+            border-color: #ff6b35;
+            box-shadow: 0 0 20px rgba(255,107,53,0.3);
+        }
+
+        .campfire-textarea::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* 좋아요 버튼 */
+        .note-like-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .note-like-btn:hover {
+            background: rgba(231,76,60,0.2);
+            transform: scale(1.1);
+        }
+
+        .note-like-btn.liked {
+            color: #c0392b;
+            background: rgba(231,76,60,0.1);
+        }
+
+        /* 반응 이모지 */
+        .reaction-buttons {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .reaction-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .reaction-btn:hover {
+            opacity: 1;
+            transform: scale(1.2);
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* 스크롤바 스타일링 */
+        .sticky-notes-container::-webkit-scrollbar,
+        .stats-view::-webkit-scrollbar,
+        .campfire-view::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sticky-notes-container::-webkit-scrollbar-track,
+        .stats-view::-webkit-scrollbar-track,
+        .campfire-view::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+        }
+
+        .sticky-notes-container::-webkit-scrollbar-thumb,
+        .stats-view::-webkit-scrollbar-thumb,
+        .campfire-view::-webkit-scrollbar-thumb {
+            background: rgba(255,107,53,0.5);
+            border-radius: 3px;
         }
 
         /* 감정 분석 인디케이터 */
@@ -556,11 +1218,93 @@
             </div>
         </div>
 
+        <!-- 통계 화면 -->
+        <div class="stats-view" id="statsView" style="display: none;">
+            <div class="stats-header">
+                <h2 style="color: #ff6b35; margin-bottom: 20px;">📊 나의 감정 통계</h2>
+            </div>
+            
+            <div class="stats-grid">
+                <!-- 총 기록 수 -->
+                <div class="stat-card">
+                    <div class="stat-number" id="totalEntries">0</div>
+                    <div class="stat-label">총 기록</div>
+                </div>
+                
+                <!-- 평균 글자 수 -->
+                <div class="stat-card">
+                    <div class="stat-number" id="avgLength">0</div>
+                    <div class="stat-label">평균 글자</div>
+                </div>
+                
+                <!-- 연속 기록 -->
+                <div class="stat-card">
+                    <div class="stat-number" id="streakDays">0</div>
+                    <div class="stat-label">연속 일수</div>
+                </div>
+                
+                <!-- 가장 많은 감정 -->
+                <div class="stat-card">
+                    <div class="stat-number" id="topEmotion">😊</div>
+                    <div class="stat-label">주요 감정</div>
+                </div>
+            </div>
+            
+            <!-- 감정 분포 차트 -->
+            <div class="chart-container">
+                <h3 style="color: white; margin-bottom: 15px;">감정 분포</h3>
+                <div class="emotion-chart" id="emotionChart"></div>
+            </div>
+            
+            <!-- 날씨별 감정 매트릭스 -->
+            <div class="weather-emotion-matrix">
+                <h3 style="color: white; margin-bottom: 15px;">날씨별 기분</h3>
+                <div class="matrix-grid" id="weatherMatrix"></div>
+            </div>
+            
+            <!-- 시간대별 활동 -->
+            <div class="time-activity">
+                <h3 style="color: white; margin-bottom: 15px;">시간대별 기록</h3>
+                <div class="time-chart" id="timeChart"></div>
+            </div>
+        </div>
+
+        <!-- 캠프파이어 화면 -->
+        <div class="campfire-view" id="campfireView" style="display: none;">
+            <div class="campfire-header">
+                <h2 style="color: #ff6b35; text-align: center; margin-bottom: 15px;">🔥 Campfire</h2>
+                <p style="text-align: center; color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 20px;">
+                    다른 사람들의 마음이 담긴 이야기들
+                </p>
+            </div>
+            
+            <!-- 캠프파이어 불꽃 -->
+            <div class="campfire-flame-container">
+                <div class="campfire-flame"></div>
+            </div>
+            
+            <!-- 스티키노트 컨테이너 -->
+            <div class="sticky-notes-container" id="stickyNotesContainer">
+                <!-- 동적으로 생성됨 -->
+            </div>
+            
+            <!-- 새 포스트 작성 -->
+            <div class="new-post-section">
+                <textarea 
+                    class="campfire-textarea" 
+                    id="campfireTextarea"
+                    placeholder="마음속 이야기를 캠프파이어에 나누어 보세요... (최소 50자)"
+                    maxlength="300">
+                </textarea>
+                <button class="btn" onclick="postToCampfire()" style="margin-top: 10px;">🔥 캠프파이어에 올리기</button>
+            </div>
+        </div>
+
         <!-- 하단 네비게이션 -->
         <div class="bottom-nav">
-            <button class="nav-btn active">🏠</button>
-            <button class="nav-btn">🔥</button>
-            <button class="nav-btn">📊</button>
+            <button class="nav-btn active" onclick="showView('home')">🏠</button>
+            <button class="nav-btn" onclick="showView('campfire')">🔥</button>
+            <button class="nav-btn" onclick="showView('stats')">📊</button>
             <button class="nav-btn">⚙️</button>
         </div>
     </div>
