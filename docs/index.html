@@ -1,224 +1,327 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SunSet · 노트형 캠프파이어 프로토타입</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>SunSet · Pitch (Campfire Illustrated)</title>
 <style>
-:root {
-  --bg:#faf7f0;
-  --paper:#fffef9;
-  --ink:#4b3d33;
-  --accent:#ffd36e;
-  --accent-dark:#ffb347;
-  --border:#e6dfd3;
+:root{
+  --bg:#fff6e5; --paper:#fffef9; --ink:#2e3a59; --muted:#6e7a95;
+  --coral:#ff6f61; --lav:#d6a4a4; --pow:#a9c9ff; --line:#efd9c2;
+  --shadow-1:0 2px 8px rgba(28,22,18,.08); --shadow-2:0 12px 28px rgba(28,22,18,.14);
+  --radius:18px; --ease:cubic-bezier(.22,.61,.36,1);
 }
-* { box-sizing:border-box; }
-body {
-  margin:0;
-  font-family: 'Nanum Myeongjo', serif;
-  background: var(--bg) url('https://www.transparenttextures.com/patterns/notebook.png');
-  color: var(--ink);
+:root.dark{
+  --bg:#17130f; --paper:#1d1915; --ink:#f1e9de; --muted:#bfc8dd;
+  --coral:#ff8d7f; --lav:#f0b7b7; --pow:#88b7ff; --line:#2a241e;
+  --shadow-1:0 4px 10px rgba(0,0,0,.35); --shadow-2:0 18px 38px rgba(0,0,0,.5);
 }
-.app {
-  max-width: 800px;
-  margin: 0 auto;
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
+*{box-sizing:border-box} html,body{height:100%}
+body{margin:0;font-family:-apple-system,system-ui,Segoe UI,Roboto,Noto Sans KR,Malgun Gothic,sans-serif;color:var(--ink);
+  background:
+   radial-gradient(1400px 700px at 20% -10%, rgba(255,223,200,.55), transparent 60%),
+   radial-gradient(1200px 700px at 120% 110%, rgba(169,201,255,.35), transparent 60%),
+   var(--bg);}
+.app{max-width:480px;min-height:100vh;margin:0 auto;display:flex;flex-direction:column}
+header{position:sticky;top:0;z-index:20;padding:12px 16px;backdrop-filter:saturate(130%) blur(10px);
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.6));border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900}
+.logo svg{width:22px;height:22px}
+.pill{margin-left:auto;padding:6px 12px;border-radius:999px;background:linear-gradient(120deg,var(--pow),var(--lav),var(--coral));
+  color:#372a22;font-weight:900;font-size:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)}
+.icon{width:36px;height:36px;border:1px solid var(--line);border-radius:12px;background:var(--paper);display:grid;place-items:center;cursor:pointer;position:relative;overflow:hidden;box-shadow:var(--shadow-1)}
+.icon svg{width:18px;height:18px;fill:var(--ink)}
+footer{position:sticky;bottom:0;z-index:20;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,1));border-top:1px solid var(--line);box-shadow:var(--shadow-1)}
+.tabs{display:flex}
+.tabs button{flex:1;border:0;background:transparent;padding:10px 0 8px;display:flex;flex-direction:column;gap:4px;align-items:center;cursor:pointer;color:var(--muted);font-weight:800}
+.tabs button.active{color:var(--ink)}
+.tabs svg{width:20px;height:20px;fill:currentColor}
+.ripple{position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at var(--x) var(--y),rgba(255,255,255,.6),transparent 60%);animation:r .5s var(--ease)}
+@keyframes r{from{opacity:1}to{opacity:0}}
+main{flex:1;position:relative;overflow:hidden}
+.view{position:absolute;inset:0;left:100%;padding:14px;overflow:auto;transition:left .28s var(--ease)}
+.view.active{left:0}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.75));border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-2);padding:18px;margin-bottom:14px}
+.card.ghost{background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,.45));box-shadow:var(--shadow-1)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1;cursor:pointer;border:0;border-radius:14px;padding:13px 12px;font-weight:900;letter-spacing:.2px;position:relative;overflow:hidden;box-shadow:var(--shadow-1)}
+.btn.primary{background:linear-gradient(150deg,var(--pow),var(--lav),var(--coral));color:#372a22}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.input,.textin,textarea{width:100%;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.75));padding:12px 14px;font-size:16px}
+textarea{min-height:160px;resize:vertical;line-height:1.7}
+.q-title{font-size:12px;color:var(--muted);margin:0 0 6px}
+.q-body{font-size:20px;font-weight:900;margin:0 0 10px}
+.small{font-size:12px;color:var(--muted)}
+.list{display:grid;gap:8px}
+.item{padding:10px;border:1px dashed var(--line);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(255,255,255,.65))}
+/* MAP background */
+.map{height:380px;position:relative;border:1px solid var(--line);border-radius:18px;overflow:hidden;
+  background:
+    radial-gradient(800px 500px at 50% 110%, rgba(255,199,168,.6), transparent 60%),
+    radial-gradient(700px 400px at -10% -10%, rgba(169,201,255,.55), transparent 60%),
+    linear-gradient(180deg,#fffaf1,#fff6ea);
 }
-header, footer {
-  background: rgba(255,255,255,0.9);
-  border-bottom:1px solid var(--border);
-  padding:10px 16px;
-}
-header h1 {
-  font-size: 20px;
-  margin:0;
-}
-main { flex:1; padding:16px; }
-section { display:none; }
-section.active { display:block; }
-.card {
-  background: var(--paper);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  border-radius:8px;
-  padding:16px;
-  margin-bottom:16px;
-}
-button {
-  cursor:pointer;
-  padding:8px 14px;
-  border:none;
-  border-radius:6px;
-  font-weight:bold;
-}
-.btn-primary {
-  background: linear-gradient(var(--accent), var(--accent-dark));
-  color: var(--ink);
-}
-.btn-secondary {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--ink);
-}
-textarea {
-  width:100%;
-  border:none;
-  border-bottom:2px solid #d9c7a6;
-  background:transparent;
-  font-size:16px;
-  line-height:1.8;
-  resize:none;
-  outline:none;
-}
-.flame {
-  cursor:pointer;
-  font-size:24px;
-  transition: transform 0.1s ease;
-}
-.flame.selected { transform: scale(1.2); }
-.msg {
-  border-left:4px solid #ffd59e;
-  padding:8px 12px;
-  margin-bottom:10px;
-}
-.name { font-weight:bold; color:#d48806; }
-.navbar {
-  display:flex;
-  justify-content:space-around;
-}
-.navbar button.active {
-  border-bottom:2px solid var(--accent-dark);
-}
+/* CAMPFIRE marker: logs + flame */
+.campfire{position:absolute;transform:translate(-50%,-50%);width:80px;height:86px;cursor:pointer;user-select:none;filter:drop-shadow(0 8px 16px rgba(0,0,0,.18))}
+.campfire svg{width:100%;height:100%}
+/* flame animation */
+@keyframes flameFlick{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.04)}}
+.flame {transform-origin:50% 80%; animation:flameFlick 1.4s ease-in-out infinite}
+.campfire.sel .flame {animation-duration:0.9s}
+/* ember particles */
+.ember{fill:rgba(255,180,120,.85); animation: rise 1.6s ease-in-out infinite}
+.ember:nth-child(1){animation-delay:.0s}.ember:nth-child(2){animation-delay:.4s}.ember:nth-child(3){animation-delay:.8s}
+@keyframes rise{0%{opacity:0; transform:translateY(0) scale(.6)}30%{opacity:1}100%{opacity:0; transform:translateY(-24px) scale(1.2)}}
+/* CHAT */
+.chat{display:grid;gap:10px}
+.msg{background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(255,255,255,.75));border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:var(--shadow-1)}
+.name{font-weight:900;color:#d07c12;margin-bottom:4px}
+.react{display:flex;gap:8px;margin-top:6px}
+.react button{border:0;background:transparent;cursor:pointer;font-size:18px}
+.inputbar{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(255,255,255,0),var(--paper));padding:10px 0 12px}
+.inputrow{display:flex;gap:8px}
+.textin{flex:1;border-radius:999px}
+/* SUMMARY */
+.summary{font-size:15px;border-left:4px solid var(--coral);padding-left:10px;background:rgba(255,190,170,.25);border-radius:8px;white-space:pre-wrap}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#2b211b;color:#fff;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .25s var(--ease);z-index:50;box-shadow:var(--shadow-2)}
+.toast.show{opacity:1}
 </style>
 </head>
 <body>
 <div class="app">
-<header>
-  <h1>SunSet</h1>
-</header>
-<main>
-  <!-- 홈 -->
-  <section id="home" class="active">
-    <div class="card">
-      <p><strong>오늘의 질문</strong></p>
-      <p id="qText">오늘은 무엇이 평소보다 무겁게 느껴졌나요?</p>
-      <button class="btn-primary" data-nav="editor">일기 쓰기</button>
-      <button class="btn-secondary" data-nav="map">캠프파이어 맵</button>
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffcf80"/><stop offset="1" stop-color="#ff8c2e"/></linearGradient></defs><path fill="url(#g)" d="M12 2c1.4 3.1-1 4.3-1 6.8 0 1.5 1.5 2.7 3.1 2.1C14 13 13 15 10.8 15 8.2 15 6.2 12.9 6.2 10.6 6.2 6.9 9.2 5.2 12 2z"/></svg>
+      <strong>SunSet</strong>
     </div>
-  </section>
+    <span class="pill">Pitch</span>
+    <button id="themeBtn" class="icon" aria-label="테마 전환"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18 9 9 0 010-18z"/></svg></button>
+  </header>
 
-  <!-- 일기 작성 -->
-  <section id="editor" class="card">
-    <p>질문: <span id="qText2">오늘은 무엇이 평소보다 무겁게 느껴졌나요?</span></p>
-    <textarea id="entry" placeholder="여기에 오늘의 이야기를 적어주세요…"></textarea>
-    <br><br>
-    <button class="btn-primary" data-nav="summary">AI 요약</button>
-    <button class="btn-secondary" data-nav="visibility">공개 범위 설정</button>
-  </section>
+  <main>
+    <section id="home" class="view active">
+      <article class="card">
+        <p class="q-title">오늘의 질문</p>
+        <p class="q-body" id="qText">오늘 하루, 어떤 감정을 가장 길게 느꼈나요?</p>
+        <div class="row">
+          <button class="btn primary" data-nav="editor">일기 쓰기</button>
+          <button class="btn ghost" data-nav="map">캠프파이어</button>
+          <button class="btn ghost" data-nav="feed">공유 피드</button>
+        </div>
+      </article>
+      <article class="card ghost">
+        <p class="q-title">최근 일기</p>
+        <div id="recentList" class="list"></div>
+      </article>
+    </section>
 
-  <!-- 공개 범위 -->
-  <section id="visibility" class="card">
-    <p><strong>공개 범위 설정</strong></p>
-    <label><input type="radio" name="vis" value="나만 보기"> 나만 보기</label><br>
-    <label><input type="radio" name="vis" value="친구 공개"> 친구 공개</label><br>
-    <label><input type="radio" name="vis" value="익명 클러스터" checked> 익명 클러스터</label><br>
-    <label><input type="radio" name="vis" value="전체 공개"> 전체 공개</label><br><br>
-    <button class="btn-primary" data-nav="editor">확인</button>
-  </section>
+    <section id="editor" class="view">
+      <article class="card">
+        <div class="q-title">질문</div>
+        <p class="q-body" id="qText2">오늘 하루, 어떤 감정을 가장 길게 느꼈나요?</p>
+        <div class="row">
+          <button class="btn ghost" id="hintBtn">✍️ 글감</button>
+          <button class="btn ghost" id="moodBtn">🙂 기분</button>
+          <button class="btn ghost" id="clearBtn">🧹 지우기</button>
+        </div>
+        <textarea id="entry" placeholder="따뜻한 말투로, 오늘의 순간을 기록해요…"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button class="btn primary" data-nav="summary" id="aiBtn">AI 요약</button>
+          <button class="btn ghost" data-nav="visibility">공개 범위</button>
+          <button class="btn ghost" id="saveDraft">임시 저장</button>
+        </div>
+      </article>
+    </section>
 
-  <!-- AI 요약 -->
-  <section id="summary" class="card">
-    <p><strong>AI 요약</strong></p>
-    <p id="sumText">당신은 흐리고 단절된 기분을 느꼈으며, 조용하고 부드러운 연결을 원했습니다.</p>
-    <p><strong>키워드:</strong> 🌫 흐림, 🌙 기운 없음, 🤝 연결 희망</p>
-    <button class="btn-primary" data-nav="map">캠프파이어 맵으로</button>
-  </section>
+    <section id="summary" class="view">
+      <article class="card">
+        <p class="q-title">AI 요약</p>
+        <div id="sumBox" class="summary"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" data-nav="map">캠프파이어로</button>
+          <button class="btn ghost" data-nav="editor">수정</button>
+        </div>
+      </article>
+    </section>
 
-  <!-- 맵 -->
-  <section id="map" class="card">
-    <p><strong>캠프파이어 맵</strong></p>
-    <div>
-      <span class="flame" data-cluster="A">🔥</span>
-      <span class="flame" data-cluster="B">🔥</span>
-      <span class="flame" data-cluster="C">🔥</span>
-    </div>
-    <br>
-    <button class="btn-primary" id="openCampfire">선택한 캠프파이어 열기</button>
-    <button class="btn-secondary" data-nav="home">뒤로</button>
-  </section>
+    <section id="visibility" class="view">
+      <article class="card">
+        <p class="q-title">공개 범위</p>
+        <label class="item"><input type="radio" name="vis" value="나만 보기"> 나만 보기</label>
+        <label class="item"><input type="radio" name="vis" value="지인 공개"> 지인 공개</label>
+        <label class="item"><input type="radio" name="vis" value="익명 클러스터" checked> 익명 클러스터</label>
+        <label class="item"><input type="radio" name="vis" value="전체 공개"> 전체 공개</label>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" data-nav="editor">확인</button>
+        </div>
+      </article>
+    </section>
 
-  <!-- 캠프파이어 -->
-  <section id="campfire" class="card">
-    <p><strong>캠프파이어 채팅</strong></p>
-    <div id="chat">
-      <div class="msg"><div class="name">Emily</div>요즘 단절감을 느끼고 있어요.</div>
-      <div class="msg"><div class="name">Alex</div>저도 그래요. 고요함이 그립지만 연결도 원해요.</div>
-    </div>
-    <input type="text" id="msgInput" placeholder="메시지를 입력하세요…" style="width:80%">
-    <button class="btn-primary" id="sendMsg">보내기</button>
-    <br><br>
-    <button class="btn-secondary" data-nav="home">완료</button>
-  </section>
-</main>
-<footer>
-  <div class="navbar">
-    <button data-nav="home" class="active">홈</button>
-    <button data-nav="editor">쓰기</button>
-    <button data-nav="map">맵</button>
-  </div>
-</footer>
+    <!-- CAMPFIRE MAP (with illustrated fires) -->
+    <section id="map" class="view">
+      <article class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <strong>캠프파이어</strong>
+          <span class="small">장작불 아이콘을 선택하세요</span>
+        </div>
+        <div class="map">
+          <!-- Fire A -->
+          <div class="campfire" style="left:24%;top:68%" data-c="A" title="성찰 · 42명">
+            <svg viewBox="0 0 80 86" role="img" aria-label="캠프파이어 A">
+              <!-- embers -->
+              <circle class="ember" cx="40" cy="26" r="2"/>
+              <circle class="ember" cx="30" cy="20" r="1.8"/>
+              <circle class="ember" cx="50" cy="18" r="1.6"/>
+              <!-- flame group -->
+              <g class="flame">
+                <path d="M40 10 C35 22, 30 26, 32 34 C33 42, 40 46, 44 44 C50 40, 52 33, 48 26 C46 22, 44 18, 40 10Z" fill="#ffb347"/>
+                <path d="M40 16 C37 23, 34 26, 35 32 C36 38, 40 40, 43 38 C46 36, 47 31, 45 27 C44 25, 42 21, 40 16Z" fill="#ff8c2e"/>
+                <circle cx="40" cy="44" r="12" fill="rgba(255,205,150,.35)"/>
+              </g>
+              <!-- logs -->
+              <g>
+                <rect x="18" y="58" width="44" height="8" rx="4" fill="#7a4e2a"/>
+                <rect x="20" y="60" width="40" height="4" rx="2" fill="#5e3b1f"/>
+                <rect x="26" y="64" width="44" height="8" rx="4" fill="#7a4e2a" transform="rotate(-12 26 64)"/>
+                <rect x="28" y="66" width="40" height="4" rx="2" fill="#5e3b1f" transform="rotate(-12 28 66)"/>
+              </g>
+            </svg>
+          </div>
+          <!-- Fire B -->
+          <div class="campfire" style="left:55%;top:36%" data-c="B" title="예민함 · 38명">
+            <svg viewBox="0 0 80 86" role="img" aria-label="캠프파이어 B">
+              <circle class="ember" cx="40" cy="26" r="2"/>
+              <circle class="ember" cx="30" cy="20" r="1.8"/>
+              <circle class="ember" cx="50" cy="18" r="1.6"/>
+              <g class="flame">
+                <path d="M40 10 C35 22, 30 26, 32 34 C33 42, 40 46, 44 44 C50 40, 52 33, 48 26 C46 22, 44 18, 40 10Z" fill="#ffd36e"/>
+                <path d="M40 16 C37 23, 34 26, 35 32 C36 38, 40 40, 43 38 C46 36, 47 31, 45 27 C44 25, 42 21, 40 16Z" fill="#ffb347"/>
+                <circle cx="40" cy="44" r="12" fill="rgba(255,205,150,.35)"/>
+              </g>
+              <g>
+                <rect x="18" y="58" width="44" height="8" rx="4" fill="#7a4e2a"/>
+                <rect x="20" y="60" width="40" height="4" rx="2" fill="#5e3b1f"/>
+                <rect x="26" y="64" width="44" height="8" rx="4" fill="#7a4e2a" transform="rotate(10 26 64)"/>
+                <rect x="28" y="66" width="40" height="4" rx="2" fill="#5e3b1f" transform="rotate(10 28 66)"/>
+              </g>
+            </svg>
+          </div>
+          <!-- Fire C -->
+          <div class="campfire" style="left:78%;top:72%" data-c="C" title="차분함 · 51명">
+            <svg viewBox="0 0 80 86" role="img" aria-label="캠프파이어 C">
+              <circle class="ember" cx="40" cy="26" r="2"/>
+              <circle class="ember" cx="30" cy="20" r="1.8"/>
+              <circle class="ember" cx="50" cy="18" r="1.6"/>
+              <g class="flame">
+                <path d="M40 10 C35 22, 30 26, 32 34 C33 42, 40 46, 44 44 C50 40, 52 33, 48 26 C46 22, 44 18, 40 10Z" fill="#ffb347"/>
+                <path d="M40 16 C37 23, 34 26, 35 32 C36 38, 40 40, 43 38 C46 36, 47 31, 45 27 C44 25, 42 21, 40 16Z" fill="#ff8c2e"/>
+                <circle cx="40" cy="44" r="12" fill="rgba(255,205,150,.35)"/>
+              </g>
+              <g>
+                <rect x="18" y="58" width="44" height="8" rx="4" fill="#7a4e2a"/>
+                <rect x="20" y="60" width="40" height="4" rx="2" fill="#5e3b1f"/>
+                <rect x="26" y="64" width="44" height="8" rx="4" fill="#7a4e2a" transform="rotate(-6 26 64)"/>
+                <rect x="28" y="66" width="40" height="4" rx="2" fill="#5e3b1f" transform="rotate(-6 28 66)"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="openCamp">선택한 캠프파이어 열기</button>
+          <button class="btn ghost" data-nav="home">뒤로</button>
+        </div>
+      </article>
+    </section>
+
+    <section id="campfire" class="view">
+      <article class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <strong>캠프파이어 · <span id="campLabel">-</span></strong>
+          <span class="small"><span id="left">--:--:--</span> 남음</span>
+        </div>
+        <div id="chat" class="chat"></div>
+        <div class="inputbar">
+          <div class="inputrow">
+            <input id="msg" class="textin" placeholder="조용히 응시하거나, 한 마디 남겨요…">
+            <button id="send" class="btn primary">보내기</button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section id="feed" class="view">
+      <article class="card">
+        <p class="q-title">익명 공유 피드(프리뷰)</p>
+        <div id="feedList" class="list"></div>
+      </article>
+    </section>
+
+    <section id="settings" class="view">
+      <article class="card">
+        <p class="q-title">설정</p>
+        <div class="row">
+          <button id="themeToggle" class="btn ghost">라이트/다크</button>
+          <button id="reset" class="btn ghost">데이터 초기화</button>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="tabs">
+      <button data-nav="home" class="active" aria-label="홈"><svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9H6v-9H3z"/></svg><span>홈</span></button>
+      <button data-nav="editor" aria-label="쓰기"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/></svg><span>쓰기</span></button>
+      <button data-nav="map" aria-label="맵"><svg viewBox="0 0 24 24"><path d="M15 6l-6-2-6 2v14l6-2 6 2 6-2V4z"/></svg><span>맵</span></button>
+      <button data-nav="feed" aria-label="피드"><svg viewBox="0 0 24 24"><path d="M4 6h16v12H4zM6 4h12v2H6z"/></svg><span>피드</span></button>
+      <button data-nav="settings" aria-label="설정"><svg viewBox="0 0 24 24"><path d="M19.14 12.94a8 8 0 000-1.88l2.03-1.58a.5.5 0 00.12-.65l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a8 8 0 00-1.63-.95l-.36-2.54A.5.5 0 0013.9 2H10.1a.5.5 0 00-.49.42l-.36 2.54c-.57.23-1.12.53-1.63.95l-2.39-.96a.5.5 0 00-.61.22L2.7 8.03a.5.5 0 00.12.65l2.03 1.58c-.06.31-.1.63-.1.94s.04.63.1.94L2.82 13.7a.5.5 0 00-.12.65l1.92 3.32c.14.24.44.34.7.22l2.39-.96c.51.42 1.06.72 1.63.95l.36 2.54c.05.25.26.42.49.42h3.8c.24 0 .44-.17.49-.42l.36-2.54c.57-.23 1.12-.53 1.63-.95l2.39.96c.26.12.56.02.7-.22l1.92-3.32a.5.5 0 00-.12-.65l-2.03-1.58zM12 16a4 4 0 110-8 4 4 0 010 8z"/></svg><span>설정</span></button>
+    </nav>
+  </footer>
 </div>
 
+<div class="toast" id="toast">완료</div>
+
 <script>
-// 네비게이션
-const sections = document.querySelectorAll("main section");
-const navBtns = document.querySelectorAll("[data-nav]");
-function go(id){
-  sections.forEach(s => s.classList.toggle("active", s.id === id));
-  navBtns.forEach(b => b.classList.toggle("active", b.dataset.nav === id));
-}
-navBtns.forEach(b => b.addEventListener("click", () => go(b.dataset.nav)));
-
-// 맵 불꽃 선택
-let selectedCluster = null;
-document.querySelectorAll(".flame").forEach(f=>{
-  f.addEventListener("click", ()=>{
-    document.querySelectorAll(".flame").forEach(fl=>fl.classList.remove("selected"));
-    f.classList.add("selected");
-    selectedCluster = f.dataset.cluster;
-  });
-});
-
-// 캠프파이어 열기 버튼
-document.getElementById("openCampfire").addEventListener("click", ()=>{
-  if(selectedCluster){
-    go("campfire");
-  } else {
-    alert("캠프파이어를 선택하세요.");
-  }
-});
-
-// AI 요약 반영
-document.querySelector('[data-nav="summary"]').addEventListener("click", ()=>{
-  const txt = document.getElementById("entry").value.trim();
-  document.getElementById("sumText").textContent = txt ? 
-    `요약: "${txt.slice(0,30)}..."` : 
-    "당신은 흐리고 단절된 기분을 느꼈으며, 조용하고 부드러운 연결을 원했습니다.";
-});
-
-// 채팅 보내기
-document.getElementById("sendMsg").addEventListener("click", ()=>{
-  const val = document.getElementById("msgInput").value.trim();
-  if(!val) return;
-  const div = document.createElement("div");
-  div.className = "msg";
-  div.innerHTML = `<div class="name">나</div>${val}`;
-  document.getElementById("chat").appendChild(div);
-  document.getElementById("msgInput").value = "";
-});
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+function go(id){ $$('.view').forEach(v=>v.classList.remove('active')); $('#'+id).classList.add('active'); $$('.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.nav===id)); }
+function ripple(e){ const b=e.currentTarget, r=document.createElement('span'); const rect=b.getBoundingClientRect(); r.className='ripple'; r.style.setProperty('--x',(e.clientX-rect.left)+'px'); r.style.setProperty('--y',(e.clientY-rect.top)+'px'); b.appendChild(r); setTimeout(()=>r.remove(),500); }
+$$('[data-nav]').forEach(b=>b.addEventListener('click', e=>{ ripple(e); go(b.dataset.nav);}));
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1500); }
+$('#themeBtn').addEventListener('click', e=>{ ripple(e); document.documentElement.classList.toggle('dark'); });
+$('#themeToggle').addEventListener('click', e=>{ ripple(e); document.documentElement.classList.toggle('dark'); });
+const qs=['오늘 하루, 어떤 감정을 가장 길게 느꼈나요?','오늘 나를 웃게 한 장면은?','지금 마음의 온도는 몇 도쯤일까요?']; const q=qs[Math.floor(Math.random()*qs.length)]; $('#qText').textContent=q; $('#qText2').textContent=q;
+const hints=['짧은 문장 하나로 오늘을 요약해봐요.','몸이 기억한 감각(빛/냄새/소리) 하나를 적어봐요.','고마웠던 순간을 떠올려요.','내일의 작은 약속 하나.'];
+$('#hintBtn').addEventListener('click', e=>{ ripple(e); toast('글감: '+hints[Math.floor(Math.random()*hints.length)]); });
+$('#moodBtn').addEventListener('click', e=>{ ripple(e); toast('기분: 업데이트 완료'); });
+$('#clearBtn').addEventListener('click', e=>{ ripple(e); if(confirm('입력 내용을 지울까요?')) $('#entry').value=''; });
+function getEntries(){ return JSON.parse(localStorage.getItem('sunset.entries')||'[]'); }
+function setEntries(a){ localStorage.setItem('sunset.entries', JSON.stringify(a)); }
+function loadRecent(){ const list=$('#recentList'); list.innerHTML=''; const a=getEntries().slice(-6).reverse(); if(a.length===0){ list.innerHTML='<div class="item">아직 작성된 일기가 없습니다.</div>'; return;} a.forEach(e=>{ const d=document.createElement('div'); d.className='item'; d.textContent=(e.text||'').slice(0,80); list.appendChild(d); }); }
+function saveEntry(){ const t=$('#entry').value.trim(); if(!t) return; const arr=getEntries(); arr.push({text:t,date:Date.now(),vis:getVis()}); setEntries(arr); loadRecent(); toast('임시 저장 완료 ✅'); }
+function getVis(){ const r=$$('input[name="vis"]'); const f=r.find(x=>x.checked); return f?f.value:'익명 클러스터'; }
+$('#saveDraft').addEventListener('click', saveEntry); loadRecent();
+$('#aiBtn').addEventListener('click', ()=>{ saveEntry(); const t=$('#entry').value.trim(); const s=t ? `요약: "${t.slice(0,160)}${t.length>160?'…':''}"\n\n말벗: 오늘의 감정이 자연스럽게 흘렀네요.` : '요약: 잔잔한 피로와 함께, 조용한 연결을 바랐습니다.'; go('summary'); const el=$('#sumBox'); el.textContent=''; let i=0; const id=setInterval(()=>{ el.textContent += s[i]||''; i++; if(i>s.length) clearInterval(id); }, 12); });
+$$('input[name="vis"]').forEach(r=>r.addEventListener('change', ()=>toast('공개 범위: '+r.value)));
+/* CAMPFIRE select */
+let selected=null; $$('.campfire').forEach(cf=>cf.addEventListener('click', ()=>{ $$('.campfire').forEach(x=>x.classList.remove('sel')); cf.classList.add('sel'); selected=cf.dataset.c; }));
+$('#openCamp').addEventListener('click', ()=>{ if(!selected) return alert('캠프파이어를 선택하세요.'); $('#campLabel').textContent=selected; startCamp(); go('campfire'); });
+/* Chat & timer */
+const msgs=[{n:'Luna',t:'오늘은 말수가 줄었어요. 대신 마음이 조금 고요했어요.'},{n:'Noah',t:'사소한 오해가 있었지만, 금방 풀릴 것 같아요.'},{n:'Ava',t:'산책을 했더니 숨이 깊어졌어요.'}];
+function renderChat(){ const c=$('#chat'); c.innerHTML=''; msgs.forEach(m=>{ const div=document.createElement('div'); div.className='msg'; div.innerHTML=`<div class="name">${m.n}</div>${m.t}<div class="react"><button>❤️ <span>0</span></button><button>👍 <span>0</span></button><button>🔥 <span>0</span></button></div>`; c.appendChild(div); }); } renderChat();
+$('#chat').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return; const s=b.querySelector('span'); s.textContent=String((+s.textContent||0)+1); });
+$('#send').addEventListener('click', ()=>{ const v=$('#msg').value.trim(); if(!v) return; msgs.push({n:'나',t:v}); renderChat(); $('#msg').value=''; $('#chat').scrollTo({top:$('#chat').scrollHeight,behavior:'smooth'}); });
+let end=null,tid=null; function startCamp(){ end=Date.now()+ (23*3600+59*60+20)*1000; if(tid) clearInterval(tid); tid=setInterval(()=>{ const left=Math.max(0,end-Date.now()); const h=String(Math.floor(left/3600000)).padStart(2,'0'); const m=String(Math.floor((left%3600000)/60000)).padStart(2,'0'); const s=String(Math.floor((left%60000)/1000)).padStart(2,'0'); $('#left').textContent=`${h}:${m}:${s}`; if(left<=0) clearInterval(tid); },1000); }
+/* FEED */
+const demoFeed=[
+ {m:'🌿 차분함', t:'햇살이 부드러워서 창문을 오래 열어 두었다.'},
+ {m:'🫧 예민함', t:'작은 소리에도 신경이 곤두섰지만, 저녁엔 조금 풀렸다.'},
+ {m:'🌫 흐림', t:'머리가 무거웠다. 커피 향만이 선명했다.'},
+ {m:'🔥 열정', t:'짧은 아이디어가 자꾸 떠올라서 메모장을 채웠다.'}
+];
+function loadFeed(){ const l=$('#feedList'); l.innerHTML=''; demoFeed.forEach(x=>{ const d=document.createElement('div'); d.className='item'; d.textContent=`${x.m} ${x.t}`; l.appendChild(d); }); } loadFeed();
+/* misc */
+$$('.tabs button, .btn, .icon').forEach(el=>el.addEventListener('click', ripple));
+$('#reset').addEventListener('click', ()=>{ if(!confirm('모든 데이터를 삭제할까요?')) return; localStorage.removeItem('sunset.entries'); loadRecent(); toast('초기화 완료'); });
 </script>
 </body>
 </html>
