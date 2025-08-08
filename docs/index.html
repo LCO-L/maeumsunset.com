@@ -118,6 +118,12 @@
 
         .main-view.active {
             display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
         /* 홈 화면 */
@@ -590,7 +596,7 @@
         </div>
 
         <!-- 홈 화면 -->
-        <div class="main-view active" id="homeView">
+        <div class="main-view active" id="homeView" style="display: block;">
             <div class="location-bar">
                 <span>📍</span>
                 <span id="locationText">Seoul, Gangnam</span>
@@ -620,7 +626,7 @@
         </div>
 
         <!-- 통계 화면 -->
-        <div class="main-view" id="statsView">
+        <div class="main-view" id="statsView" style="display: none;">
             <h2 style="color: #ff6b35; margin-bottom: 20px; text-align: center;">📊 나의 감정 통계</h2>
             
             <div class="stats-grid">
@@ -644,12 +650,34 @@
             
             <div class="chart-container">
                 <h3 style="color: white; margin-bottom: 15px;">감정 분포</h3>
-                <div class="emotion-chart" id="emotionChart"></div>
+                <div class="emotion-chart" id="emotionChart">
+                    <div class="emotion-bar">
+                        <div class="emotion-icon">😊</div>
+                        <div class="emotion-progress">
+                            <div class="emotion-fill" style="width: 60%"></div>
+                        </div>
+                        <div class="emotion-count">3</div>
+                    </div>
+                    <div class="emotion-bar">
+                        <div class="emotion-icon">😌</div>
+                        <div class="emotion-progress">
+                            <div class="emotion-fill" style="width: 40%"></div>
+                        </div>
+                        <div class="emotion-count">2</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 style="color: white; margin-bottom: 15px;">최근 활동</h3>
+                <p style="color: rgba(255,255,255,0.7); font-size: 14px;">
+                    일기를 더 많이 작성하면 상세한 통계를 볼 수 있어요!
+                </p>
             </div>
         </div>
 
         <!-- 캠프파이어 화면 -->
-        <div class="main-view" id="campfireView">
+        <div class="main-view" id="campfireView" style="display: none;">
             <div class="campfire-header">
                 <h2 style="color: #ff6b35;">🔥 Campfire</h2>
                 <p style="color: rgba(255,255,255,0.8); font-size: 14px;">다른 사람들의 마음이 담긴 이야기들</p>
@@ -658,7 +686,42 @@
             <div class="campfire-flame"></div>
             
             <div class="sticky-notes-container" id="stickyNotesContainer">
-                <!-- 동적으로 생성됨 -->
+                <!-- 샘플 스티키노트들 -->
+                <div class="sticky-note">
+                    <div class="note-content">오늘 첫눈을 보면서 어린 시절이 생각났어요. 그때는 모든 게 신기하고 아름다웠는데...</div>
+                    <div class="note-meta">
+                        <div>🥀 ❄️</div>
+                        <div>3시간 전</div>
+                    </div>
+                    <div class="reaction-buttons">
+                        <button class="reaction-btn">❤️3</button>
+                        <button class="reaction-btn">🤗2</button>
+                    </div>
+                </div>
+                
+                <div class="sticky-note">
+                    <div class="note-content">비 오는 날이면 항상 창가에 앉아서 커피를 마시게 돼요. 이 평온함이 좋아요.</div>
+                    <div class="note-meta">
+                        <div>😌 🌧️</div>
+                        <div>1시간 전</div>
+                    </div>
+                    <div class="reaction-buttons">
+                        <button class="reaction-btn">☕4</button>
+                        <button class="reaction-btn">💙2</button>
+                    </div>
+                </div>
+                
+                <div class="sticky-note">
+                    <div class="note-content">친구들과 공원에서 피크닉! 햇살이 따뜻하고 바람이 살랑살랑~ 이런 날이 행복이죠</div>
+                    <div class="note-meta">
+                        <div>😊 ☀️</div>
+                        <div>6시간 전</div>
+                    </div>
+                    <div class="reaction-buttons">
+                        <button class="reaction-btn">😊5</button>
+                        <button class="reaction-btn">☀️3</button>
+                    </div>
+                </div>
             </div>
             
             <div class="new-post-section">
@@ -764,8 +827,43 @@
             setTimeout(() => document.getElementById('mainTextarea').focus(), 100);
         });
 
-        // 날씨 변경 (데모용)
-        function changeWeather() {
+        // 뷰 전환 - 전역 함수로 정의
+        window.showView = function(viewName) {
+            console.log('Switching to view:', viewName);
+            
+            // 모든 뷰 숨기기
+            document.querySelectorAll('.main-view').forEach(view => {
+                view.classList.remove('active');
+                view.style.display = 'none';
+            });
+            
+            // 모든 네비게이션 버튼 비활성화
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // 선택된 뷰 표시
+            if (viewName === 'home') {
+                const homeView = document.getElementById('homeView');
+                homeView.style.display = 'block';
+                homeView.classList.add('active');
+                document.querySelectorAll('.nav-btn')[0].classList.add('active');
+                setTimeout(() => document.getElementById('mainTextarea').focus(), 100);
+            } else if (viewName === 'stats') {
+                const statsView = document.getElementById('statsView');
+                statsView.style.display = 'block';
+                statsView.classList.add('active');
+                document.querySelectorAll('.nav-btn')[2].classList.add('active');
+                updateStatsView();
+            } else if (viewName === 'campfire') {
+                const campfireView = document.getElementById('campfireView');
+                campfireView.style.display = 'block';
+                campfireView.classList.add('active');
+                document.querySelectorAll('.nav-btn')[1].classList.add('active');
+                updateCampfireView();
+            }
+        };
+
+        // 다른 전역 함수들도 window에 등록
+        window.changeWeather = function() {
             const weatherTypes = ['sunny', 'rainy', 'cloudy', 'snowy'];
             const currentIndex = weatherTypes.indexOf(appState.weather.type);
             const nextIndex = (currentIndex + 1) % weatherTypes.length;
@@ -777,7 +875,106 @@
             
             updateWeatherUI();
             showToast(`날씨가 ${appState.weather.description}로 변경되었습니다`);
-        }
+        };
+
+        window.analyzeAndRecommend = function() {
+            const text = document.getElementById('mainTextarea').value;
+            
+            if (text.length < 20) {
+                showToast("최소 20자 이상 작성해주세요");
+                return;
+            }
+            
+            showToast("일기를 분석하고 음악을 추천하는 중...");
+            
+            const emotion = analyzeEmotion(text);
+            appState.currentEmotion = emotion;
+            
+            updateEmotionIndicator(emotion);
+            
+            const recommendedTracks = recommendMusic(emotion, appState.weather.type);
+            appState.recommendedTracks = recommendedTracks;
+            
+            saveEntryToHistory(text, emotion, appState.weather);
+            
+            setTimeout(() => {
+                showMusicRecommendation(recommendedTracks);
+                showToast("완료! 오늘의 감정에 맞는 음악을 찾았습니다 🎵");
+            }, 1500);
+        };
+
+        window.shareEntry = function() {
+            const text = document.getElementById('mainTextarea').value;
+            if (text.length < 20) {
+                showToast("공유할 내용을 먼저 작성해주세요");
+                return;
+            }
+            
+            document.getElementById('campfireTextarea').value = text;
+            showView('campfire');
+            showToast("캠프파이어에서 이야기를 나누어 보세요! 🔥");
+            document.getElementById('mainTextarea').value = '';
+        };
+
+        window.postToCampfire = function() {
+            const textarea = document.getElementById('campfireTextarea');
+            const content = textarea.value.trim();
+            
+            if (content.length < 50) {
+                showToast("캠프파이어에는 최소 50자 이상 작성해주세요");
+                return;
+            }
+            
+            const emotion = analyzeEmotion(content);
+            const newPost = {
+                id: Date.now(),
+                content: content,
+                emotion: emotion,
+                weather: appState.weather.type,
+                timestamp: new Date(),
+                likes: 0,
+                reactions: {},
+                liked: false
+            };
+            
+            campfirePosts.unshift(newPost);
+            if (campfirePosts.length > 20) campfirePosts.pop();
+            
+            updateCampfireView();
+            textarea.value = '';
+            showToast("🔥 캠프파이어에 이야기가 추가되었습니다!");
+        };
+
+        window.playTrack = function(name, artist) {
+            showToast(`🎵 "${name}" 재생 중...`);
+        };
+
+        window.showSettings = function() {
+            showToast("⚙️ 설정 기능은 준비 중입니다");
+        };
+
+        window.interactWithPost = function(postId) {
+            showToast("포스트에 공감합니다 💭");
+        };
+
+        window.toggleLike = function(postId) {
+            const post = campfirePosts.find(p => p.id === postId);
+            if (post) {
+                post.likes = post.liked ? post.likes - 1 : post.likes + 1;
+                post.liked = !post.liked;
+                updateCampfireView();
+                showToast(post.liked ? "❤️ 좋아요!" : "좋아요 취소");
+            }
+        };
+
+        window.addReaction = function(postId, emoji) {
+            const post = campfirePosts.find(p => p.id === postId);
+            if (post) {
+                post.reactions[emoji] = (post.reactions[emoji] || 0) + 1;
+                updateCampfireView();
+                showToast(`${emoji} 반응을 보냈습니다!`);
+            }
+        };
 
         function getWeatherDescription(type) {
             const descriptions = { sunny: '맑음', rainy: '비', cloudy: '흐림', snowy: '눈' };
