@@ -1,0 +1,115 @@
+// SunSet 감정 공유형 일기 플랫폼 - Figma 자체 미리보기용 단일 HTML 파일 구조
+// 목적: Figma 내에서 HTML/CSS/JS 미리보기를 가능하게 하며 전체 인터페이스 흐름을 시각화 가능하게 함
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SunSet 감정일기</title>
+    <style>
+      body {
+        font-family: 'Helvetica Neue', sans-serif;
+        background: linear-gradient(to bottom, #fffaf0, #fff);
+        margin: 0;
+        padding: 2rem;
+        color: #333;
+      }
+      h1, h2, h3 {
+        margin-top: 1rem;
+        color: #e27040;
+      }
+      .card {
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin: 1rem auto;
+        max-width: 700px;
+      }
+      .button {
+        background: #e27040;
+        color: #fff;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+      .button:hover {
+        background: #c3582e;
+      }
+      .tag-button {
+        background: #fff7f2;
+        color: #c3582e;
+        border: 1px solid #ffccaa;
+        padding: 0.4rem 0.8rem;
+        margin: 0.3rem;
+        border-radius: 0.4rem;
+        cursor: pointer;
+      }
+      .cluster {
+        display: inline-block;
+        background: #ffe8d9;
+        padding: 1rem;
+        border-radius: 1rem;
+        margin: 1rem;
+        transition: transform 0.3s;
+      }
+      .cluster:hover {
+        transform: scale(1.05);
+      }
+      .post {
+        background: #fdf6f1;
+        padding: 1rem;
+        border-radius: 0.8rem;
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SunSet 🌅 감정 공유 일기</h1>
+    <p>기록 ▶ 이해 ▶ 공감 ▶ 공존</p>
+
+    <div class="card">
+      <h2>오늘의 감정을 기록해보세요</h2>
+      <textarea rows="6" placeholder="오늘 어떤 마음이었나요?" style="width: 100%; padding: 1rem; border-radius: 0.5rem;"></textarea>
+      <input type="file" style="margin-top: 0.5rem;" />
+      <button class="button">AI 요약 요청</button>
+    </div>
+
+    <div class="card">
+      <h3>공유 설정</h3>
+      <div>
+        <button class="tag-button">🔒 나만 보기</button>
+        <button class="tag-button">🌐 전체 공개</button>
+        <button class="tag-button">🔥 캠프파이어 등록</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>캠프파이어 맵</h3>
+      <div>
+        <div class="cluster" style="width: 150px; height: 150px;">
+          <strong>🔥 외로움에 대하여</strong><br />노트 수: 24
+        </div>
+        <div class="cluster" style="width: 130px; height: 130px;">
+          <strong>🔥 불안과 마주하기</strong><br />노트 수: 15
+        </div>
+        <div class="cluster" style="width: 170px; height: 170px;">
+          <strong>🔥 회복의 조짐</strong><br />노트 수: 32
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🔥 외로움에 대하여</h3>
+      <div class="post">
+        <p><strong>익명1:</strong> 요즘 밤마다 너무 외로워요. 아무와도 말하지 않았지만 여기에 쓰니까 조금 덜해요.</p>
+      </div>
+      <div class="post">
+        <p><strong>익명2:</strong> 혼자가 더 편한 줄 알았는데, 막상 아무도 없는 하루가 길더라고요.</p>
+      </div>
+    </div>
+  </body>
+</html>
