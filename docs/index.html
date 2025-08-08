@@ -97,12 +97,21 @@
     /* tiny helpers */
     .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SunSet · 캠프파이어 프로토타입</title>
+  <style>
+    /* 스타일은 동일, 텍스트만 한국어로 변경 */
+  </style>
 </head>
 <body>
   <div class="app">
     <header>
       <div class="topbar">
-        <div class="logo" aria-label="SunSet logo">
+        <div class="logo" aria-label="SunSet 로고">
           <svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#g)" d="M12 2c1.5 3.2-1 4.4-1 7 0 1.6 1.5 2.8 3.2 2.2C14 13 13 15 10.7 15 8 15 6 12.9 6 10.5 6 6.7 9.3 5 12 2z"/><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffb36a"/><stop offset="1" stop-color="#ff6a00"/></linearGradient></defs></svg>
           <span>SunSet</span>
         </div>
@@ -111,102 +120,102 @@
     </header>
 
     <main>
-      <!-- HOME -->
       <section id="home" class="active">
         <div class="home-grid">
           <article class="card question-card">
-            <p class="q-title">Today’s question</p>
-            <p class="q-body" id="qText">What felt heavier than usual today?</p>
+            <p class="q-title">오늘의 질문</p>
+            <p class="q-body" id="qText">오늘은 무엇이 평소보다 무겁게 느껴졌나요?</p>
             <div class="row">
-              <button class="btn" data-nav="editor">Write diary</button>
-              <button class="btn ghost" data-nav="map">Campfire map</button>
+              <button class="btn" data-nav="editor">일기 쓰기</button>
+              <button class="btn ghost" data-nav="map">캠프파이어 맵</button>
             </div>
           </article>
 
           <aside class="card" style="padding:18px">
-            <p class="q-title">My status</p>
-            <div class="chip" title="Visibility">Anonymous cluster</div>
-            <div class="chip" title="Mood">🌫 foggy</div>
+            <p class="q-title">내 상태</p>
+            <div class="chip" title="공개 범위">익명 클러스터</div>
+            <div class="chip" title="기분">🌫 흐림</div>
           </aside>
         </div>
       </section>
 
-      <!-- EDITOR -->
       <section id="editor" class="card editor">
-        <div class="hint">Writing to: <strong id="qText2">What felt heavier than usual today?</strong></div>
-        <textarea id="entry" placeholder="Write freely…"></textarea>
+        <div class="hint">작성 중: <strong id="qText2">오늘은 무엇이 평소보다 무겁게 느껴졌나요?</strong></div>
+        <textarea id="entry" placeholder="자유롭게 작성하세요…"></textarea>
         <div class="row">
-          <button class="btn" data-nav="summary">AI summary</button>
-          <button class="btn ghost" data-nav="visibility">Set visibility</button>
+          <button class="btn" data-nav="summary">AI 요약</button>
+          <button class="btn ghost" data-nav="visibility">공개 범위 설정</button>
         </div>
       </section>
 
-      <!-- VISIBILITY -->
       <section id="visibility" class="card editor" aria-labelledby="visLabel">
-        <h3 id="visLabel" style="margin:0">Set visibility</h3>
-        <label><input type="radio" name="vis" value="private"> Only me</label>
-        <label><input type="radio" name="vis" value="friends"> Friends</label>
-        <label><input type="radio" name="vis" value="cluster" checked> Anonymous cluster</label>
-        <label><input type="radio" name="vis" value="public"> Public</label>
-        <div class="row"><button class="btn" data-nav="editor">Confirm</button></div>
+        <h3 id="visLabel" style="margin:0">공개 범위 설정</h3>
+        <label><input type="radio" name="vis" value="private"> 나만 보기</label>
+        <label><input type="radio" name="vis" value="friends"> 친구 공개</label>
+        <label><input type="radio" name="vis" value="cluster" checked> 익명 클러스터</label>
+        <label><input type="radio" name="vis" value="public"> 전체 공개</label>
+        <div class="row"><button class="btn" data-nav="editor">확인</button></div>
       </section>
 
-      <!-- SUMMARY -->
       <section id="summary" class="card summary">
-        <h3 style="margin:0">AI Summary</h3>
-        <div class="kv"><div>Summary</div><div id="sumText">You felt cloudy and disconnected, craving quiet and gentle connection.</div></div>
-        <div class="kv"><div>Keywords</div><div>
-          <span class="chip">🌫 foggy</span>
-          <span class="chip">🌙 low energy</span>
-          <span class="chip">🤝 seeking connection</span>
+        <h3 style="margin:0">AI 요약</h3>
+        <div class="kv"><div>요약</div><div id="sumText">당신은 흐리고 단절된 기분을 느꼈으며, 조용하고 부드러운 연결을 원했습니다.</div></div>
+        <div class="kv"><div>키워드</div><div>
+          <span class="chip">🌫 흐림</span>
+          <span class="chip">🌙 기운 없음</span>
+          <span class="chip">🤝 연결 희망</span>
         </div></div>
-        <div class="row"><button class="btn" data-nav="map">Go to campfire map</button></div>
+        <div class="row"><button class="btn" data-nav="map">캠프파이어 맵으로</button></div>
       </section>
 
-      <!-- MAP -->
       <section id="map" class="card map">
-        <h3 style="margin:6px 0 10px">Campfire map</h3>
-        <div class="map-wrap" id="mapWrap" aria-label="Three clusters">
-          <!-- three pinned flames -->
-          <div class="flame-pin" style="left:26%; top:62%" data-cluster="A" title="Reflective · 42 participants">🔸</div>
-          <div class="flame-pin" style="left:54%; top:36%" data-cluster="B" title="Sensitive · 38 participants">🔶</div>
-          <div class="flame-pin" style="left:74%; top:68%" data-cluster="C" title="Calm · 51 participants">🟠</div>
+        <h3 style="margin:6px 0 10px">캠프파이어 맵</h3>
+        <div class="map-wrap" id="mapWrap" aria-label="세 개의 클러스터">
+          <div class="flame-pin" style="left:26%; top:62%" data-cluster="A" title="성찰 · 42명">🔸</div>
+          <div class="flame-pin" style="left:54%; top:36%" data-cluster="B" title="예민함 · 38명">🔶</div>
+          <div class="flame-pin" style="left:74%; top:68%" data-cluster="C" title="차분함 · 51명">🟠</div>
         </div>
-        <div class="row" style="margin-top:12px"><button class="btn" data-nav="campfire">Open selected campfire</button><button class="btn ghost" data-nav="home">Back</button></div>
+        <div class="row" style="margin-top:12px"><button class="btn" data-nav="campfire">선택한 캠프파이어 열기</button><button class="btn ghost" data-nav="home">뒤로</button></div>
       </section>
 
-      <!-- CAMPFIRE CHAT -->
       <section id="campfire" class="card campfire">
         <div class="campfire-head">
           <div class="row" style="justify-content:space-between">
-            <div class="logo"><svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#g)" d="M12 2c1.5 3.2-1 4.4-1 7 0 1.6 1.5 2.8 3.2 2.2C14 13 13 15 10.7 15 8 15 6 12.9 6 10.5 6 6.7 9.3 5 12 2z"/></svg><strong>Campfire</strong></div>
-            <div class="countdown"><span id="timeLeft">--:--:--</span> left before this fire fades</div>
+            <div class="logo"><svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#g)" d="M12 2c1.5 3.2-1 4.4-1 7 0 1.6 1.5 2.8 3.2 2.2C14 13 13 15 10.7 15 8 15 6 12.9 6 10.5 6 6.7 9.3 5 12 2z"/></svg><strong>캠프파이어</strong></div>
+            <div class="countdown"><span id="timeLeft">--:--:--</span> 후에 이 불이 꺼집니다</div>
           </div>
         </div>
         <div class="chat" id="chat">
-          <div class="msg"><div class="name">Emily</div><div>I’ve been feeling disconnected lately. Not sure why.</div><div class="mood">[Mood: 🌫 foggy]</div></div>
-          <div class="msg"><div class="name">Anniel</div><div>Maybe it’s the weather… I journaled about this yesterday.</div><div class="mood">[Mood: ✨ reflective]</div></div>
-          <div class="msg"><div class="name">Alex</div><div>Same here. I’ve been craving silence, but also connection.</div><div class="mood">[Mood: 🫧 sensitive]</div></div>
-          <div class="msg"><div class="name">Mia</div><div>Let’s call it a shared pause. And honor it.</div><div class="mood">[Mood: 🌿 calm]</div></div>
+          <div class="msg"><div class="name">Emily</div><div>요즘 단절감을 느끼고 있어요. 이유는 잘 모르겠어요.</div><div class="mood">[기분: 🌫 흐림]</div></div>
+          <div class="msg"><div class="name">Anniel</div><div>아마 날씨 때문일지도… 어제도 일기에 썼어요.</div><div class="mood">[기분: ✨ 성찰]</div></div>
+          <div class="msg"><div class="name">Alex</div><div>저도 그래요. 고요함이 그립지만 연결도 원해요.</div><div class="mood">[기분: 🫧 예민함]</div></div>
+          <div class="msg"><div class="name">Mia</div><div>이 시간을 ‘함께하는 멈춤’이라 부르고, 존중해요.</div><div class="mood">[기분: 🌿 차분함]</div></div>
         </div>
         <div class="inputbar">
           <div class="inputrow">
-            <input class="textin" id="msgInput" placeholder="Type your message…" aria-label="Type your message" />
-            <button class="btn" id="send">Send</button>
-            <button class="btn ghost" data-nav="home">Done</button>
+            <input class="textin" id="msgInput" placeholder="메시지를 입력하세요…" aria-label="메시지를 입력하세요" />
+            <button class="btn" id="send">보내기</button>
+            <button class="btn ghost" data-nav="home">완료</button>
           </div>
         </div>
       </section>
     </main>
 
     <footer>
-      <nav class="nav" aria-label="Primary">
-        <button data-nav="home" class="active">Home</button>
-        <button data-nav="editor">Write</button>
-        <button data-nav="map">Campfire</button>
+      <nav class="nav" aria-label="주 메뉴">
+        <button data-nav="home" class="active">홈</button>
+        <button data-nav="editor">쓰기</button>
+        <button data-nav="map">캠프파이어</button>
       </nav>
     </footer>
   </div>
+
+  <script>
+    /* JS 로직은 동일, 출력 텍스트만 한국어로 변경 */
+  </script>
+</body>
+</html>
+
 
   <script>
     // tiny view router
