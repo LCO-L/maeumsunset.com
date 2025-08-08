@@ -1,3 +1,4 @@
+document.addEventListener('DOMContentLoaded', function () {
 let CFG = null;
 let state = {
   fireScore: 0, level: 0, streak: 0, yesterday: '',
@@ -79,7 +80,7 @@ async function init(){
   registerSW();
   maybeShowDockBanner();
 }
-
+init();
 
 function saveState(){
   safeSetItem('sunset_state', JSON.stringify(state));
@@ -609,6 +610,5 @@ document.addEventListener('touchend', (e)=>{
   e.preventDefault();
   el.dispatchEvent(new Event('click', {bubbles:true}));
 });
-document.addEventListener('DOMContentLoaded', () => {
-  init();
+
 });
