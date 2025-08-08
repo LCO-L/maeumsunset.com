@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SunSet - 감정 기반 기록 플랫폼</title>
+    <title>SunSet - Core Survival Spec</title>
     <style>
         * {
             margin: 0;
@@ -18,42 +18,83 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
         }
 
-        .app-container {
+        .phone-container {
             width: 400px;
             height: 700px;
             background: linear-gradient(145deg, #1a1a2e, #16213e);
             border-radius: 30px;
             padding: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             position: relative;
             overflow: hidden;
         }
 
+        /* 오프닝 애니메이션 */
+        .opening-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, rgba(255,107,53,0.8) 0%, rgba(26,26,46,0.9) 70%);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: openingFade 0.3s ease-out forwards;
+        }
+
+        @keyframes openingFade {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.1); pointer-events: none; }
+        }
+
+        .opening-logo {
+            font-size: 48px;
+            color: white;
+            text-shadow: 0 0 30px rgba(255,107,53,0.8);
+            animation: logoGlow 0.3s ease;
+        }
+
+        @keyframes logoGlow {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 헤더 */
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: white;
+            opacity: 0;
+            animation: slideInTop 0.5s ease 0.3s forwards;
+        }
+
+        @keyframes slideInTop {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .logo-icon {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             background: linear-gradient(45deg, #ff6b35, #f7931e);
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 16px;
         }
 
         .time {
@@ -61,61 +102,196 @@
             opacity: 0.8;
         }
 
+        /* 메인 뷰 */
         .main-view {
             display: none;
-            color: white;
+            height: calc(100% - 80px);
+            opacity: 0;
         }
 
         .main-view.active {
             display: block;
+            animation: fadeInUp 0.5s ease 0.4s forwards;
         }
 
-        /* 메인 화면 */
-        .today-entry {
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 홈 화면 */
+        .home-container {
+            color: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .yesterday-entry {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            padding: 20px;
-            border-radius: 20px;
-            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .date-label {
-            font-size: 14px;
+        .yesterday-label {
+            font-size: 12px;
             opacity: 0.7;
+            margin-bottom: 8px;
+        }
+
+        .yesterday-text {
+            font-size: 14px;
+            line-height: 1.4;
             margin-bottom: 10px;
         }
 
-        .entry-preview {
-            font-size: 16px;
-            line-height: 1.4;
-            margin-bottom: 15px;
+        .emotion-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
-        .quick-write {
+        .emotion-tag {
+            background: rgba(255, 107, 53, 0.2);
+            color: #ff6b35;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+        }
+
+        /* 메인 작성 영역 */
+        .main-input-area {
+            flex: 1;
+            position: relative;
+        }
+
+        .main-textarea {
+            width: 100%;
+            height: 200px;
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 15px;
+            border-radius: 20px;
+            padding: 20px;
             color: white;
             font-size: 16px;
+            resize: none;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .main-textarea:focus {
+            border-color: #ff6b35;
+            background: rgba(255, 107, 53, 0.1);
+            box-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
+        }
+
+        .main-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* 실시간 타이핑 효과 */
+        .typing-aura {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 20px;
+            pointer-events: none;
+            opacity: 0;
+            background: radial-gradient(circle at center, rgba(255,107,53,0.2) 0%, transparent 70%);
+            transition: opacity 0.3s ease;
+        }
+
+        .typing-aura.active {
+            opacity: 1;
+            animation: auralPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes auralPulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.02); opacity: 0.5; }
+        }
+
+        /* 길이 표시기 */
+        .length-indicator {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: conic-gradient(#ff6b35 0deg, rgba(255, 255, 255, 0.1) 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .length-indicator.milestone {
+            animation: milestoneGlow 1s ease;
+        }
+
+        @keyframes milestoneGlow {
+            0% { transform: scale(1); box-shadow: 0 0 0 rgba(255,107,53,0.7); }
+            50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255,107,53,0.7); }
+            100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,107,53,0.7); }
+        }
+
+        /* AI 프로브 시스템 */
+        .probe-system {
+            margin-top: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .probe-system.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .probe-question {
+            background: rgba(255, 107, 53, 0.15);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            border-radius: 15px;
+            padding: 12px;
+            margin-bottom: 10px;
+            color: #ff6b35;
+            font-size: 14px;
+            border-left: 4px solid #ff6b35;
+        }
+
+        .probe-input {
             width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            color: white;
+            font-size: 14px;
             resize: none;
             min-height: 60px;
             outline: none;
             transition: all 0.3s ease;
         }
 
-        .quick-write:focus {
+        .probe-input:focus {
             border-color: #ff6b35;
-            background: rgba(255, 107, 53, 0.1);
-            box-shadow: 0 0 20px rgba(255, 107, 53, 0.2);
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.2);
         }
 
-        .quick-write::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
+        /* 액션 버튼들 */
         .action-buttons {
             display: flex;
             gap: 10px;
@@ -125,18 +301,23 @@
         .btn {
             background: linear-gradient(45deg, #ff6b35, #f7931e);
             border: none;
-            padding: 12px 20px;
+            padding: 14px 20px;
             border-radius: 25px;
             color: white;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             flex: 1;
+            font-size: 16px;
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
         }
 
         .btn-secondary {
@@ -144,48 +325,84 @@
             backdrop-filter: blur(10px);
         }
 
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         /* 캠프파이어 화면 */
-        .campfire-view {
-            text-align: center;
+        .campfire-container {
             color: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
 
         .campfire-title {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             color: #ff6b35;
+        }
+
+        .access-denied {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #ff6b6b;
+        }
+
+        .access-requirements {
+            font-size: 14px;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        .campfire-unlocked {
+            flex: 1;
         }
 
         .fire-container {
             position: relative;
-            margin: 40px auto;
-            width: 200px;
-            height: 200px;
+            margin: 20px auto;
+            width: 180px;
+            height: 180px;
         }
 
         .fire {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            width: 80px;
-            height: 120px;
+            width: 70px;
+            height: 100px;
             background: radial-gradient(circle, #ff6b35 0%, #ff8c42 30%, #ffd662 70%);
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
             animation: fireFlicker 2s ease-in-out infinite alternate;
         }
 
+        .fire.enhanced {
+            width: 90px;
+            height: 130px;
+            animation: fireFlickerEnhanced 1.5s ease-in-out infinite alternate;
+        }
+
         .fire::before {
             content: '';
             position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 60px;
-            height: 100px;
+            top: 8px;
+            left: 8px;
+            width: 54px;
+            height: 84px;
             background: radial-gradient(circle, #ffff88 0%, #ff6b35 70%);
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            animation: fireFlicker 1.5s ease-in-out infinite alternate-reverse;
+            animation: fireFlicker 1.8s ease-in-out infinite alternate-reverse;
         }
 
         .logs {
@@ -193,69 +410,91 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            width: 120px;
-            height: 30px;
+            width: 100px;
+            height: 25px;
             background: #8B4513;
-            border-radius: 15px;
+            border-radius: 12px;
         }
 
         .logs::before, .logs::after {
             content: '';
             position: absolute;
-            width: 100px;
-            height: 25px;
+            width: 80px;
+            height: 20px;
             background: #A0522D;
-            border-radius: 12px;
+            border-radius: 10px;
         }
 
         .logs::before {
-            top: -10px;
+            top: -8px;
             left: 10px;
-            transform: rotate(-15deg);
+            transform: rotate(-12deg);
         }
 
         .logs::after {
-            top: -10px;
+            top: -8px;
             right: 10px;
-            transform: rotate(15deg);
+            transform: rotate(12deg);
+        }
+
+        /* 동적 장작 */
+        .dynamic-log {
+            position: absolute;
+            width: 60px;
+            height: 15px;
+            background: #8B4513;
+            border-radius: 8px;
+            opacity: 0;
+            animation: logDrop 1s ease-out forwards;
+        }
+
+        @keyframes logDrop {
+            0% { opacity: 1; transform: translateY(-100px) rotate(0deg); }
+            100% { opacity: 0.8; transform: translateY(0) rotate(15deg); }
         }
 
         @keyframes fireFlicker {
-            0% { transform: translateX(-50%) scale(1) rotate(-2deg); }
-            50% { transform: translateX(-50%) scale(1.05) rotate(1deg); }
-            100% { transform: translateX(-50%) scale(0.95) rotate(-1deg); }
+            0% { transform: translateX(-50%) scale(1) rotate(-1deg); }
+            100% { transform: translateX(-50%) scale(1.05) rotate(1deg); }
+        }
+
+        @keyframes fireFlickerEnhanced {
+            0% { transform: translateX(-50%) scale(1) rotate(-2deg); filter: brightness(1.2); }
+            100% { transform: translateX(-50%) scale(1.1) rotate(2deg); filter: brightness(1.5); }
         }
 
         .campfire-subtitle {
-            font-size: 16px;
+            font-size: 14px;
             opacity: 0.8;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
-        .entry-box {
+        .campfire-input-area {
+            width: 100%;
+            flex: 1;
+        }
+
+        .campfire-textarea {
+            width: 100%;
+            height: 150px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .entry-input {
-            width: 100%;
-            background: transparent;
-            border: none;
+            padding: 15px;
             color: white;
             font-size: 16px;
             resize: none;
-            min-height: 100px;
             outline: none;
+            transition: all 0.3s ease;
         }
 
-        .entry-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
+        .campfire-textarea:focus {
+            border-color: #ff6b35;
+            box-shadow: 0 0 25px rgba(255, 107, 53, 0.3);
         }
 
-        .input-tools {
+        .campfire-tools {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -277,410 +516,691 @@
             color: #ff6b35;
         }
 
-        /* 프로브 시스템 */
-        .probe-container {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 107, 53, 0.1);
-            border-radius: 15px;
-            border-left: 4px solid #ff6b35;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease;
-        }
-
-        .probe-container.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .probe-question {
-            font-size: 14px;
-            color: #ff6b35;
-            margin-bottom: 10px;
-        }
-
-        .probe-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            padding: 10px;
-            color: white;
-            font-size: 14px;
-            resize: none;
-            min-height: 60px;
-            outline: none;
-        }
-
-        /* 하단 네비게이션 */
+        /* 네비게이션 */
         .bottom-nav {
             position: absolute;
-            bottom: 20px;
+            bottom: 15px;
             left: 20px;
             right: 20px;
             display: flex;
             justify-content: space-around;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 25px;
-            padding: 15px;
+            border-radius: 20px;
+            padding: 12px;
         }
 
         .nav-btn {
             background: none;
             border: none;
             color: rgba(255, 255, 255, 0.6);
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
             transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 12px;
         }
 
         .nav-btn.active {
             color: #ff6b35;
-            transform: scale(1.2);
-        }
-
-        /* 감정 태그 */
-        .emotion-tags {
-            display: flex;
-            gap: 8px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-
-        .emotion-tag {
             background: rgba(255, 107, 53, 0.2);
-            color: #ff6b35;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            border: 1px solid rgba(255, 107, 53, 0.3);
+            transform: scale(1.1);
         }
 
-        /* 길이 보상 표시 */
-        .length-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: conic-gradient(#ff6b35 0deg, rgba(255, 255, 255, 0.2) 0deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
+        /* 토스트 시스템 */
+        .toast {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 107, 53, 0.95);
             color: white;
-            transition: all 0.3s ease;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 14px;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+            animation: toastSlide 0.3s ease-out;
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.4);
         }
 
-        /* 반응형 디자인 */
+        @keyframes toastSlide {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* 반응형 */
         @media (max-width: 480px) {
-            .app-container {
+            .phone-container {
                 width: 100vw;
                 height: 100vh;
                 border-radius: 0;
             }
         }
 
-        /* 애니메이션 효과 */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
+        /* 스크롤바 숨기기 */
+        ::-webkit-scrollbar {
+            display: none;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* 기록 항목들 */
+        .entry-record {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
         }
 
-        .glow {
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from { box-shadow: 0 0 10px rgba(255, 107, 53, 0.2); }
-            to { box-shadow: 0 0 30px rgba(255, 107, 53, 0.6); }
+        .entry-count {
+            color: #ff6b35;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
+    <div class="phone-container">
+        <!-- 오프닝 애니메이션 -->
+        <div class="opening-overlay" id="openingOverlay">
+            <div class="opening-logo">🌅</div>
+        </div>
+
         <div class="header">
             <div class="logo">
                 <div class="logo-icon">🌅</div>
-                <span style="font-weight: 700; font-size: 20px;">SunSet</span>
+                <span style="font-weight: 700; font-size: 18px;">SunSet</span>
             </div>
             <div class="time" id="currentTime"></div>
         </div>
 
-        <!-- 메인 화면 -->
-        <div class="main-view active" id="mainView">
-            <div class="today-entry fade-in">
-                <div class="date-label">오늘</div>
-                <div class="entry-preview">오늘 하루를 기록해보세요...</div>
-                <div class="emotion-tags" id="todayTags">
-                    <!-- 동적으로 생성됨 -->
+        <!-- 홈 화면 -->
+        <div class="main-view active" id="homeView">
+            <div class="home-container">
+                <!-- 어제 기록 -->
+                <div class="yesterday-entry">
+                    <div class="yesterday-label">Yesterday</div>
+                    <div class="yesterday-text">Feeling motivated and hopeful about the future</div>
+                    <div class="emotion-tags">
+                        <span class="emotion-tag">희망적</span>
+                        <span class="emotion-tag">동기부여</span>
+                    </div>
                 </div>
-            </div>
 
-            <textarea 
-                class="quick-write" 
-                id="quickWrite"
-                placeholder="지금 바로 기록해요..."
-                maxlength="1000">
-            </textarea>
+                <!-- 메인 입력 영역 -->
+                <div class="main-input-area">
+                    <div class="typing-aura" id="typingAura"></div>
+                    <textarea 
+                        class="main-textarea" 
+                        id="mainTextarea"
+                        placeholder="Write something now..."
+                        autofocus>
+                    </textarea>
+                    <div class="length-indicator" id="lengthIndicator">
+                        <span id="lengthNumber">0</span>
+                    </div>
+                </div>
 
-            <div class="length-indicator" id="lengthIndicator">
-                <span id="lengthPercent">0</span>
-            </div>
+                <!-- AI 프로브 시스템 -->
+                <div class="probe-system" id="probeSystem">
+                    <div class="probe-question" id="probeQuestion"></div>
+                    <textarea class="probe-input" id="probeInput" placeholder="더 자세히 들려주세요..."></textarea>
+                </div>
 
-            <div class="action-buttons">
-                <button class="btn" onclick="saveEntry()">저장</button>
-                <button class="btn btn-secondary" onclick="showCampfire()">캠프파이어</button>
-            </div>
+                <!-- 기록 현황 -->
+                <div class="entry-record">
+                    <span class="entry-count" id="entryCount">0</span>회 기록 완료 
+                    <span id="campfireStatus">(캠프파이어 잠금: 3회 필요)</span>
+                </div>
 
-            <!-- AI 프로브 시스템 -->
-            <div class="probe-container" id="probeContainer">
-                <div class="probe-question" id="probeQuestion"></div>
-                <textarea class="probe-input" id="probeInput" placeholder="생각을 더 들려주세요..."></textarea>
+                <!-- 액션 버튼 -->
+                <div class="action-buttons">
+                    <button class="btn" id="saveBtn" onclick="saveEntry()">저장</button>
+                    <button class="btn btn-secondary" id="campfireBtn" onclick="tryAccessCampfire()" disabled>캠프파이어</button>
+                </div>
             </div>
         </div>
 
         <!-- 캠프파이어 화면 -->
         <div class="main-view" id="campfireView">
-            <div class="campfire-title">Campfire</div>
-            
-            <div class="fire-container">
-                <div class="logs"></div>
-                <div class="fire" id="campfireFire"></div>
-            </div>
-
-            <div class="campfire-subtitle">Add more logs to stoke the fire</div>
-
-            <div class="entry-box">
-                <textarea 
-                    class="entry-input" 
-                    id="campfireInput"
-                    placeholder="정말 길고 아름다운 일기를 쓰고 있다...">
-                </textarea>
+            <div class="campfire-container">
+                <div class="campfire-title">Campfire</div>
                 
-                <div class="input-tools">
-                    <button class="tool-btn" onclick="addEmotionTag()">😊</button>
-                    <button class="tool-btn">🎤</button>
-                    <button class="tool-btn">📷</button>
-                    <button class="btn" style="padding: 8px 16px; font-size: 14px;" onclick="saveCampfireEntry()">기록</button>
+                <!-- 접근 거부 상태 -->
+                <div class="access-denied" id="accessDenied">
+                    <div style="font-size: 18px; margin-bottom: 10px;">🔒 캠프파이어는 잠겨있습니다</div>
+                    <div>진중한 감정 기록 문화를 위해</div>
+                    <div class="access-requirements">
+                        장문 기록 3회 이상 완료 시 입장 가능합니다.<br>
+                        현재: <span id="accessEntryCount">0</span>/3회 완료
+                    </div>
+                </div>
+
+                <!-- 캠프파이어 해금 상태 -->
+                <div class="campfire-unlocked" id="campfireUnlocked" style="display: none;">
+                    <div class="fire-container">
+                        <div class="logs" id="campfireLogs"></div>
+                        <div class="fire" id="campfireFire"></div>
+                    </div>
+
+                    <div class="campfire-subtitle">Add more logs to stoke the fire</div>
+
+                    <div class="campfire-input-area">
+                        <textarea 
+                            class="campfire-textarea" 
+                            id="campfireTextarea"
+                            placeholder="정말 길고 아름다운 일기를 쓰고 있다...">
+                        </textarea>
+                        
+                        <div class="campfire-tools">
+                            <button class="tool-btn" onclick="addEmoji()">😊</button>
+                            <button class="tool-btn">🎤</button>
+                            <button class="tool-btn">📷</button>
+                            <button class="btn" style="padding: 10px 20px; font-size: 14px;" onclick="saveCampfireEntry()">장작 추가</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- 하단 네비게이션 -->
         <div class="bottom-nav">
-            <button class="nav-btn active" id="homeBtn" onclick="showView('main')">🏠</button>
-            <button class="nav-btn" id="campfireBtn" onclick="showView('campfire')">🔥</button>
+            <button class="nav-btn active" id="homeNavBtn" onclick="switchView('home')">🏠</button>
+            <button class="nav-btn" id="campfireNavBtn" onclick="switchView('campfire')">🔥</button>
             <button class="nav-btn" onclick="showStats()">📊</button>
             <button class="nav-btn" onclick="showSettings()">⚙️</button>
         </div>
     </div>
 
     <script>
-        // 현재 시간 표시
+        // 전역 상태
+        let state = {
+            entryCount: 0,
+            currentLength: 0,
+            probeActive: false,
+            campfireUnlocked: false,
+            typingTimer: null,
+            lastTypingTime: 0
+        };
+
+        // AI 프로브 질문들
+        const probeQuestions = [
+            "조금 더 자세히 얘기해 줄래요?",
+            "그 순간 당신 머릿속엔 어떤 그림이 있었나요?",
+            "혹시 이 일이 다른 하루와 어떻게 달랐나요?",
+            "그때의 냄새나 소리까지 기억나나요?",
+            "이 상황이 지금의 나에게 어떤 의미를 주나요?",
+            "그때 느꼈던 감정을 한 단어로 표현한다면?",
+            "만약 친구에게 이 이야기를 한다면 어떻게 시작할까요?"
+        ];
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            // 오프닝 애니메이션 제거
+            setTimeout(() => {
+                document.getElementById('openingOverlay').style.display = 'none';
+            }, 300);
+
+            // 시간 업데이트
+            updateTime();
+            setInterval(updateTime, 60000);
+
+            // 메인 텍스트에어리어 즉시 포커스 (1초 안에)
+            setTimeout(() => {
+                document.getElementById('mainTextarea').focus();
+            }, 400);
+
+            // 상태 로드
+            loadState();
+            updateUI();
+        });
+
+        // 시간 업데이트
         function updateTime() {
             const now = new Date();
             document.getElementById('currentTime').textContent = 
                 now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
         }
-        updateTime();
-        setInterval(updateTime, 60000);
+
+        // 메인 텍스트에어리어 이벤트
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainTextarea = document.getElementById('mainTextarea');
+            const typingAura = document.getElementById('typingAura');
+            const lengthIndicator = document.getElementById('lengthIndicator');
+            const lengthNumber = document.getElementById('lengthNumber');
+
+            mainTextarea.addEventListener('input', function() {
+                const length = this.value.length;
+                state.currentLength = length;
+
+                // 실시간 타이핑 오라 효과
+                typingAura.classList.add('active');
+                state.lastTypingTime = Date.now();
+                
+                clearTimeout(state.typingTimer);
+                state.typingTimer = setTimeout(() => {
+                    typingAura.classList.remove('active');
+                }, 1000);
+
+                // 길이 인디케이터 업데이트
+                const percentage = Math.min((length / 500) * 100, 100);
+                lengthNumber.textContent = length;
+                lengthIndicator.style.background = 
+                    `conic-gradient(#ff6b35 ${percentage * 3.6}deg, rgba(255, 255, 255, 0.1) ${percentage * 3.6}deg)`;
+
+                // 마일스톤 효과
+                if (length === 100 || length === 200 || length === 300) {
+                    lengthIndicator.classList.add('milestone');
+                    setTimeout(() => lengthIndicator.classList.remove('milestone'), 1000);
+                    
+                    // 장작 떨어지는 효과 (시뮬레이션)
+                    if (length >= 200) {
+                        showToast(`🔥 ${length}자 달성! 불꽃이 더 활활 타오릅니다!`);
+                    }
+                }
+
+                // AI 프로브 트리거
+                if (length >= 30 && length <= 80 && !state.probeActive) {
+                    triggerProbe();
+                } else if (length > 200 && state.probeActive) {
+                    hideProbe();
+                }
+
+                // 타이핑 속도 감지해서 장작 효과
+                if (Date.now() - state.lastTypingTime < 100) {
+                    // 빠른 타이핑일 때 추가 효과
+                    if (Math.random() < 0.1) {
+                        createTypingParticle();
+                    }
+                }
+            });
+
+            mainTextarea.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    saveEntry();
+                }
+            });
+        });
+
+        // AI 프로브 시스템
+        function triggerProbe() {
+            if (state.probeActive) return;
+            
+            state.probeActive = true;
+            const probeSystem = document.getElementById('probeSystem');
+            const probeQuestion = document.getElementById('probeQuestion');
+            
+            const randomQuestion = probeQuestions[Math.floor(Math.random() * probeQuestions.length)];
+            probeQuestion.textContent = randomQuestion;
+            
+            probeSystem.classList.add('show');
+        }
+
+        function hideProbe() {
+            state.probeActive = false;
+            document.getElementById('probeSystem').classList.remove('show');
+        }
+
+        // 타이핑 파티클 효과
+        function createTypingParticle() {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: absolute;
+                width: 4px;
+                height: 4px;
+                background: #ff6b35;
+                border-radius: 50%;
+                top: ${Math.random() * 200 + 50}px;
+                left: ${Math.random() * 300 + 50}px;
+                opacity: 1;
+                animation: particleFade 1s ease-out forwards;
+                pointer-events: none;
+                z-index: 5;
+            `;
+            
+            document.querySelector('.main-input-area').appendChild(particle);
+            
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 1000);
+        }
+
+        // 저장 기능
+        function saveEntry() {
+            const mainText = document.getElementById('mainTextarea').value;
+            const probeText = document.getElementById('probeInput').value;
+            
+            if (mainText.length < 20) {
+                showToast("⚠️ 최소 20자 이상 작성해주세요");
+                return;
+            }
+
+            // 기록 카운트 증가
+            state.entryCount++;
+            
+            // 감각적 보상 효과
+            const textarea = document.getElementById('mainTextarea');
+            textarea.style.animation = 'saveGlow 1s ease-out';
+            
+            // 길이에 따른 차등 보상
+            if (mainText.length >= 300) {
+                showToast("🔥 장작이 가득 쌓였어요, 불이 활활 타오릅니다!");
+                createFireworks();
+            } else if (mainText.length >= 200) {
+                showToast("✨ 오늘의 기록이 불을 크게 밝혔습니다!");
+            } else {
+                showToast("💫 기록이 저장되었습니다");
+            }
+
+            // 색온도 변화 효과
+            document.body.style.filter = 'hue-rotate(10deg) brightness(1.1)';
+            setTimeout(() => {
+                document.body.style.filter = 'none';
+            }, 500);
+
+            // 초기화
+            textarea.value = '';
+            document.getElementById('probeInput').value = '';
+            hideProbe();
+            resetLengthIndicator();
+            
+            // 상태 저장 및 UI 업데이트
+            saveState();
+            updateUI();
+            
+            // 애니메이션 초기화
+            setTimeout(() => {
+                textarea.style.animation = 'none';
+            }, 1000);
+        }
+
+        // 폭죽 효과
+        function createFireworks() {
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const firework = document.createElement('div');
+                    firework.style.cssText = `
+                        position: fixed;
+                        width: 6px;
+                        height: 6px;
+                        background: #ff6b35;
+                        border-radius: 50%;
+                        top: 50%;
+                        left: 50%;
+                        animation: fireworkExplode 1.5s ease-out forwards;
+                        pointer-events: none;
+                        z-index: 1500;
+                    `;
+                    
+                    const angle = (360 / 8) * i;
+                    firework.style.setProperty('--angle', angle + 'deg');
+                    
+                    document.body.appendChild(firework);
+                    
+                    setTimeout(() => {
+                        if (firework.parentNode) {
+                            firework.parentNode.removeChild(firework);
+                        }
+                    }, 1500);
+                }, i * 100);
+            }
+        }
+
+        // 길이 인디케이터 리셋
+        function resetLengthIndicator() {
+            const lengthIndicator = document.getElementById('lengthIndicator');
+            const lengthNumber = document.getElementById('lengthNumber');
+            
+            lengthNumber.textContent = '0';
+            lengthIndicator.style.background = 
+                'conic-gradient(#ff6b35 0deg, rgba(255, 255, 255, 0.1) 0deg)';
+            state.currentLength = 0;
+        }
+
+        // 캠프파이어 접근 시도
+        function tryAccessCampfire() {
+            if (state.entryCount >= 3) {
+                state.campfireUnlocked = true;
+                switchView('campfire');
+            } else {
+                showToast(`🔒 캠프파이어 입장까지 ${3 - state.entryCount}회 더 기록이 필요합니다`);
+            }
+        }
 
         // 뷰 전환
-        function showView(view) {
+        function switchView(view) {
             const views = document.querySelectorAll('.main-view');
             const navBtns = document.querySelectorAll('.nav-btn');
             
             views.forEach(v => v.classList.remove('active'));
             navBtns.forEach(btn => btn.classList.remove('active'));
             
-            if (view === 'main') {
-                document.getElementById('mainView').classList.add('active');
-                document.getElementById('homeBtn').classList.add('active');
+            if (view === 'home') {
+                document.getElementById('homeView').classList.add('active');
+                document.getElementById('homeNavBtn').classList.add('active');
+                setTimeout(() => document.getElementById('mainTextarea').focus(), 100);
             } else if (view === 'campfire') {
                 document.getElementById('campfireView').classList.add('active');
-                document.getElementById('campfireBtn').classList.add('active');
+                document.getElementById('campfireNavBtn').classList.add('active');
+                updateCampfireView();
             }
         }
 
-        function showCampfire() {
-            showView('campfire');
-        }
-
-        // 글자 수 감지 및 길이 보상
-        const quickWrite = document.getElementById('quickWrite');
-        const lengthIndicator = document.getElementById('lengthIndicator');
-        const lengthPercent = document.getElementById('lengthPercent');
-        const probeContainer = document.getElementById('probeContainer');
-
-        quickWrite.addEventListener('input', function() {
-            const length = this.value.length;
-            const maxLength = 1000;
-            const percentage = Math.min((length / maxLength) * 100, 100);
+        // 캠프파이어 뷰 업데이트
+        function updateCampfireView() {
+            const accessDenied = document.getElementById('accessDenied');
+            const campfireUnlocked = document.getElementById('campfireUnlocked');
+            const accessEntryCount = document.getElementById('accessEntryCount');
             
-            lengthPercent.textContent = Math.round(percentage);
-            lengthIndicator.style.background = 
-                `conic-gradient(#ff6b35 ${percentage * 3.6}deg, rgba(255, 255, 255, 0.2) ${percentage * 3.6}deg)`;
+            accessEntryCount.textContent = state.entryCount;
             
-            // 길이에 따른 시각적 피드백
-            if (length > 200) {
-                lengthIndicator.classList.add('glow');
+            if (state.entryCount >= 3) {
+                accessDenied.style.display = 'none';
+                campfireUnlocked.style.display = 'block';
+                
+                // 캠프파이어 텍스트에어리어에 이벤트 추가
+                const campfireTextarea = document.getElementById('campfireTextarea');
+                campfireTextarea.addEventListener('input', function() {
+                    updateCampfireFire(this.value.length);
+                });
             } else {
-                lengthIndicator.classList.remove('glow');
+                accessDenied.style.display = 'block';
+                campfireUnlocked.style.display = 'none';
             }
-
-            // AI 프로브 트리거 (짧은 글일 때)
-            if (length > 20 && length < 100 && !probeContainer.classList.contains('show')) {
-                showProbe();
-            }
-        });
-
-        // AI 프로브 시스템
-        const probeQuestions = [
-            "조금 더 자세히 얘기해 줄래요?",
-            "그 순간 당신 머릿속엔 어떤 그림이 있었나요?",
-            "혹시 이 일이 다른 하루와 어떻게 달랐나요?",
-            "그때의 냄새나 소리까지 기억나나요?",
-            "이 상황이 지금의 나에게 어떤 의미를 주나요?"
-        ];
-
-        function showProbe() {
-            const randomQuestion = probeQuestions[Math.floor(Math.random() * probeQuestions.length)];
-            document.getElementById('probeQuestion').textContent = randomQuestion;
-            probeContainer.classList.add('show');
         }
 
-        // 저장 기능
-        function saveEntry() {
-            const text = quickWrite.value;
-            const probeText = document.getElementById('probeInput').value;
+        // 캠프파이어 불꽃 업데이트
+        function updateCampfireFire(length) {
+            const fire = document.getElementById('campfireFire');
             
-            if (text.length > 0) {
-                // 감정 태그 생성
-                generateEmotionTags(text);
-                
-                // 저장 효과
-                quickWrite.classList.add('glow');
-                setTimeout(() => quickWrite.classList.remove('glow'), 1000);
-                
-                // 성취 메시지
-                if (text.length > 200) {
-                    showToast("오늘의 기록이 불을 크게 밝혔습니다! 🔥");
-                } else {
-                    showToast("기록이 저장되었습니다 ✨");
+            if (length > 200) {
+                fire.classList.add('enhanced');
+                // 장작 추가 애니메이션
+                if (length % 100 === 0) {
+                    dropLog();
                 }
-                
-                // 입력 필드 초기화
-                quickWrite.value = '';
-                document.getElementById('probeInput').value = '';
-                probeContainer.classList.remove('show');
-                lengthIndicator.style.background = 
-                    'conic-gradient(#ff6b35 0deg, rgba(255, 255, 255, 0.2) 0deg)';
-                lengthPercent.textContent = '0';
+            } else {
+                fire.classList.remove('enhanced');
             }
+        }
+
+        // 장작 떨어뜨리기 애니메이션
+        function dropLog() {
+            const logsContainer = document.getElementById('campfireLogs');
+            const log = document.createElement('div');
+            log.className = 'dynamic-log';
+            log.style.left = Math.random() * 60 + 'px';
+            
+            logsContainer.appendChild(log);
+            
+            setTimeout(() => {
+                if (log.parentNode) {
+                    log.parentNode.removeChild(log);
+                }
+            }, 1000);
         }
 
         // 캠프파이어 저장
         function saveCampfireEntry() {
-            const campfireInput = document.getElementById('campfireInput');
-            const text = campfireInput.value;
+            const campfireText = document.getElementById('campfireTextarea').value;
             
-            if (text.length > 0) {
-                // 불꽃 효과 강화
-                const fire = document.getElementById('campfireFire');
-                fire.style.transform = 'translateX(-50%) scale(1.2)';
-                fire.style.filter = 'brightness(1.5)';
-                
-                setTimeout(() => {
-                    fire.style.transform = 'translateX(-50%) scale(1)';
-                    fire.style.filter = 'brightness(1)';
-                }, 1000);
-                
-                if (text.length > 300) {
-                    showToast("장작이 가득 쌓였어요, 불이 활활 타오릅니다! 🔥");
-                } else {
-                    showToast("캠프파이어에 기록이 추가되었습니다 🌟");
-                }
-                
-                campfireInput.value = '';
+            if (campfireText.length < 50) {
+                showToast("⚠️ 캠프파이어에는 최소 50자 이상 작성해주세요");
+                return;
+            }
+
+            // 강화된 불꽃 효과
+            const fire = document.getElementById('campfireFire');
+            fire.style.transform = 'translateX(-50%) scale(1.3)';
+            fire.style.filter = 'brightness(1.8) saturate(1.2)';
+            
+            setTimeout(() => {
+                fire.style.transform = 'translateX(-50%) scale(1)';
+                fire.style.filter = 'brightness(1)';
+            }, 1500);
+
+            // 여러 장작 떨어뜨리기
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => dropLog(), i * 200);
+            }
+
+            if (campfireText.length >= 500) {
+                showToast("🔥🔥🔥 캠프파이어가 장대하게 타오릅니다! 모든 이들에게 따뜻함을 전해줍니다!");
+            } else if (campfireText.length >= 300) {
+                showToast("🔥🔥 장작이 가득 쌓였어요, 불이 활활 타오릅니다!");
+            } else {
+                showToast("🔥 캠프파이어에 따뜻한 이야기가 추가되었습니다");
+            }
+
+            document.getElementById('campfireTextarea').value = '';
+        }
+
+        // 이모지 추가
+        function addEmoji() {
+            const emojis = ['😊', '😌', '🤔', '😢', '😡', '😱', '😴', '🥰', '🎉', '✨', '🌟', '💫'];
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+            
+            const campfireTextarea = document.getElementById('campfireTextarea');
+            const cursorPos = campfireTextarea.selectionStart;
+            const textBefore = campfireTextarea.value.substring(0, cursorPos);
+            const textAfter = campfireTextarea.value.substring(cursorPos);
+            
+            campfireTextarea.value = textBefore + randomEmoji + ' ' + textAfter;
+            campfireTextarea.setSelectionRange(cursorPos + 2, cursorPos + 2);
+            campfireTextarea.focus();
+        }
+
+        // UI 업데이트
+        function updateUI() {
+            const entryCountEl = document.getElementById('entryCount');
+            const campfireStatusEl = document.getElementById('campfireStatus');
+            const campfireBtn = document.getElementById('campfireBtn');
+            
+            entryCountEl.textContent = state.entryCount;
+            
+            if (state.entryCount >= 3) {
+                campfireStatusEl.textContent = '(캠프파이어 해금됨! 🔥)';
+                campfireStatusEl.style.color = '#ff6b35';
+                campfireBtn.disabled = false;
+                campfireBtn.textContent = '캠프파이어';
+            } else {
+                const remaining = 3 - state.entryCount;
+                campfireStatusEl.textContent = `(캠프파이어 잠금: ${remaining}회 더 필요)`;
+                campfireBtn.disabled = true;
             }
         }
 
-        // 감정 태그 생성
-        function generateEmotionTags(text) {
-            const emotions = ['희망', '성찰', '감사', '평온', '성취'];
-            const randomEmotion = emotions[Math.floor(Math.random() * emotions.length)];
-            
-            const tagsContainer = document.getElementById('todayTags');
-            const tag = document.createElement('span');
-            tag.className = 'emotion-tag';
-            tag.textContent = randomEmotion;
-            tagsContainer.appendChild(tag);
+        // 상태 저장/로드
+        function saveState() {
+            localStorage.setItem('sunset_state', JSON.stringify(state));
         }
 
-        // 감정 태그 추가
-        function addEmotionTag() {
-            const emotions = ['😊', '😌', '🤔', '😢', '😡', '😱', '😴', '🥰'];
-            const randomEmoji = emotions[Math.floor(Math.random() * emotions.length)];
-            
-            const campfireInput = document.getElementById('campfireInput');
-            campfireInput.value += ` ${randomEmoji} `;
-            campfireInput.focus();
+        function loadState() {
+            const saved = localStorage.getItem('sunset_state');
+            if (saved) {
+                state = { ...state, ...JSON.parse(saved) };
+            }
         }
 
         // 토스트 메시지
         function showToast(message) {
             const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed;
-                top: 50px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(255, 107, 53, 0.9);
-                color: white;
-                padding: 15px 25px;
-                border-radius: 25px;
-                font-size: 14px;
-                z-index: 1000;
-                backdrop-filter: blur(10px);
-                animation: fadeIn 0.5s ease;
-            `;
+            toast.className = 'toast';
             toast.textContent = message;
             
             document.body.appendChild(toast);
             
             setTimeout(() => {
-                toast.style.animation = 'fadeOut 0.5s ease';
-                setTimeout(() => document.body.removeChild(toast), 500);
+                toast.style.animation = 'toastSlide 0.3s ease-out reverse';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
             }, 3000);
         }
 
         // 추가 기능들
         function showStats() {
-            showToast("통계 기능은 준비 중입니다 📊");
+            const totalChars = state.entryCount * 150; // 평균 추정
+            showToast(`📊 총 ${state.entryCount}회 기록, 약 ${totalChars}자 작성`);
         }
 
         function showSettings() {
-            showToast("설정 기능은 준비 중입니다 ⚙️");
+            showToast("⚙️ 설정 기능은 준비 중입니다");
         }
+
+        // CSS 애니메이션 추가
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes saveGlow {
+                0% { box-shadow: 0 0 0 rgba(255,107,53,0); }
+                50% { box-shadow: 0 0 30px rgba(255,107,53,0.8); }
+                100% { box-shadow: 0 0 0 rgba(255,107,53,0); }
+            }
+            
+            @keyframes particleFade {
+                0% { opacity: 1; transform: scale(1); }
+                100% { opacity: 0; transform: scale(0) translateY(-20px); }
+            }
+            
+            @keyframes fireworkExplode {
+                0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { 
+                    opacity: 0; 
+                    transform: translate(-50%, -50%) scale(0) 
+                               translateX(calc(cos(var(--angle)) * 100px))
+                               translateY(calc(sin(var(--angle)) * 100px));
+                }
+            }
+        `;
+        document.head.appendChild(style);
 
         // 키보드 단축키
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'Enter') {
-                saveEntry();
+                e.preventDefault();
+                if (document.getElementById('homeView').classList.contains('active')) {
+                    saveEntry();
+                } else if (document.getElementById('campfireView').classList.contains('active')) {
+                    saveCampfireEntry();
+                }
             }
-        });
-
-        // 초기화
-        document.addEventListener('DOMContentLoaded', function() {
-            quickWrite.focus();
+            
+            if (e.ctrlKey && e.key === '1') {
+                e.preventDefault();
+                switchView('home');
+            }
+            
+            if (e.ctrlKey && e.key === '2') {
+                e.preventDefault();
+                if (state.entryCount >= 3) {
+                    switchView('campfire');
+                }
+            }
         });
     </script>
 </body>
