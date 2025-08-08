@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>캠프파이어 저널</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🔥 캠프파이어</div>
+    <div class="today" id="todayStr"></div>
+  </header>
+
+  <main class="container">
+    <section class="editor card">
+      <textarea id="journal" placeholder="여기에 오늘의 노트를 적어주세요. (하나의 입력칸)"></textarea>
+      <div class="row">
+        <div id="lenHint" class="subtle">0자</div>
+        <button id="saveBtn" class="btn">저장</button>
+      </div>
+    </section>
+
+    <section class="card" id="campSection">
+      <div class="row">
+        <h3 style="margin:0">오늘의 캠프</h3>
+        <button id="editTopicsBtn" class="btn ghost">주제 편집</button>
+      </div>
+      <div id="campGrid" class="campGrid"></div>
+    </section>
+
+    <section class="card hidden" id="roomSection">
+      <div class="row">
+        <h3 id="roomTitle" style="margin:0"></h3>
+        <div style="display:flex;gap:8px">
+          <button id="backBtn" class="btn ghost">목록으로</button>
+          <button id="renameBtn" class="btn ghost">주제 바꾸기</button>
+        </div>
+      </div>
+      <div id="posts" class="cards"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
