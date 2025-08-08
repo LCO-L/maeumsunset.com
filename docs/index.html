@@ -1,289 +1,225 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SunSet · Campfire Prototype</title>
-  <style>
-    :root{
-      /* palette – warm fire on deep brown */
-      --bg-900:#120a07;  /* page background */
-      --bg-850:#170d09;
-      --bg-800:#1a0f0a;  /* panel background */
-      --bg-750:#22140d;
-      --panel:#1f130d;   /* card background */
-      --panel-2:#24170f; 
-      --text:#e8dccf;    /* primary text */
-      --muted:#c7b8a7;   /* secondary text */
-      --accent:#ff8a3c;  /* fire orange */
-      --accent-2:#ffb36a;/* warm highlight */
-      --accent-3:#ff6a00;/* deep fire */
-      --shadow:0 12px 30px rgba(0,0,0,.35);
-      --radius:16px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
-      color:var(--text); background: radial-gradient(1200px 800px at 50% 120%, #2a150c, var(--bg-900));
-      letter-spacing:.1px;
-    }
-    a{color:inherit; text-decoration:none}
-    .app{max-width:820px; margin:0 auto; min-height:100%; display:flex; flex-direction:column}
-    header{
-      position:sticky; top:0; z-index:5; backdrop-filter:saturate(120%) blur(8px);
-      background:linear-gradient(180deg, rgba(26,15,10,.9), rgba(26,15,10,.65));
-      border-bottom:1px solid rgba(255,255,255,.06);
-    }
-    .topbar{display:flex; align-items:center; gap:12px; padding:14px 18px}
-    .logo{display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px}
-    .flame{width:22px; height:22px}
-    .pill{margin-left:auto; padding:6px 10px; border-radius:999px; font-size:12px; color:#2b170c; background:linear-gradient(180deg,var(--accent-2),var(--accent)); font-weight:700}
-
-    main{flex:1; padding:22px; display:grid;}
-    section{display:none;}
-    section.active{display:block;}
-
-    .card{background:linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid rgba(255,255,255,.05); border-radius:var(--radius); box-shadow:var(--shadow)}
-
-    /* home */
-    .home-grid{display:grid; grid-template-columns:1fr; gap:16px}
-    @media (min-width:640px){.home-grid{grid-template-columns:1.3fr .7fr}}
-    .question-card{padding:18px}
-    .q-title{font-size:14px; color:var(--muted); margin:0 0 8px}
-    .q-body{font-size:18px; line-height:1.4; margin:0 0 16px}
-    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-    .btn{cursor:pointer; border:0; color:#2b170c; background:linear-gradient(180deg, var(--accent-2), var(--accent)); padding:10px 14px; border-radius:12px; font-weight:700}
-    .btn.ghost{background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.14)}
-
-    /* editor */
-    .editor{padding:18px; display:grid; gap:12px}
-    textarea{
-      width:100%; min-height:160px; resize:vertical; border-radius:14px; border:1px solid rgba(255,255,255,.08);
-      background:rgba(255,255,255,.02); color:var(--text); padding:14px; line-height:1.5; outline:none;
-      box-shadow:inset 0 0 0 1px rgba(0,0,0,.2);
-    }
-    .hint{font-size:12px; color:var(--muted)}
-
-    /* summary */
-    .summary{padding:18px; display:grid; gap:14px}
-    .kv{display:grid; grid-template-columns:140px 1fr; gap:10px; align-items:start}
-    .chip{display:inline-flex; gap:6px; align-items:center; padding:6px 10px; border-radius:999px; background:rgba(255,138,60,.12); color:#ffd9b4; border:1px solid rgba(255,138,60,.25); font-size:12px; margin-right:6px}
-
-    /* map */
-    .map{padding:18px}
-    .map-wrap{height:360px; position:relative; background: radial-gradient(600px 260px at 50% 130%, #2b160d, #170d09); border-radius:16px; border:1px solid rgba(255,255,255,.04)}
-    .flame-pin{position:absolute; transform:translate(-50%, -50%); cursor:pointer; transition:transform .12s ease}
-    .flame-pin:hover{transform:translate(-50%,-50%) scale(1.06)}
-
-    /* campfire chat */
-    .campfire{padding:0}
-    .campfire-head{padding:18px 22px}
-    .countdown{color:#ffcf99; font-size:12px; opacity:.9}
-    .chat{display:grid; gap:14px; padding:0 22px 22px}
-    .msg{background:linear-gradient(180deg, #24160f, #1d120c); border:1px solid rgba(255,255,255,.06); border-radius:18px; padding:14px 16px; box-shadow:var(--shadow)}
-    .name{color:var(--accent-2); font-weight:700; margin-bottom:6px}
-    .mood{margin-top:8px; color:#ffd9b4; font-size:12px}
-    .inputbar{position:sticky; bottom:0; background:linear-gradient(180deg, rgba(18,10,7,0), var(--bg-900)); padding:12px 22px 22px}
-    .inputrow{display:flex; gap:10px}
-    .textin{flex:1; border-radius:999px; background:rgba(255,255,255,.06); color:var(--text); border:1px solid rgba(255,255,255,.12); padding:12px 14px}
-
-    /* footer */
-    footer{position:sticky; bottom:0; background:linear-gradient(180deg, rgba(18,10,7,.2), rgba(18,10,7,.95)); border-top:1px solid rgba(255,255,255,.06)}
-    .nav{display:flex; justify-content:space-around; padding:10px}
-    .nav button{background:transparent; border:0; color:var(--muted); font-weight:700; padding:10px 12px; border-radius:10px}
-    .nav button.active{color:var(--text); background:rgba(255,255,255,.06)}
-
-    /* tiny helpers */
-    .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-  </style>
-<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SunSet · 캠프파이어 프로토타입</title>
-  <style>
-    /* 스타일은 동일, 텍스트만 한국어로 변경 */
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SunSet · 노트형 캠프파이어 프로토타입</title>
+<style>
+:root {
+  --bg:#faf7f0;
+  --paper:#fffef9;
+  --ink:#4b3d33;
+  --accent:#ffd36e;
+  --accent-dark:#ffb347;
+  --border:#e6dfd3;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  font-family: 'Nanum Myeongjo', serif;
+  background: var(--bg) url('https://www.transparenttextures.com/patterns/notebook.png');
+  color: var(--ink);
+}
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+header, footer {
+  background: rgba(255,255,255,0.9);
+  border-bottom:1px solid var(--border);
+  padding:10px 16px;
+}
+header h1 {
+  font-size: 20px;
+  margin:0;
+}
+main { flex:1; padding:16px; }
+section { display:none; }
+section.active { display:block; }
+.card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-radius:8px;
+  padding:16px;
+  margin-bottom:16px;
+}
+button {
+  cursor:pointer;
+  padding:8px 14px;
+  border:none;
+  border-radius:6px;
+  font-weight:bold;
+}
+.btn-primary {
+  background: linear-gradient(var(--accent), var(--accent-dark));
+  color: var(--ink);
+}
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+textarea {
+  width:100%;
+  border:none;
+  border-bottom:2px solid #d9c7a6;
+  background:transparent;
+  font-size:16px;
+  line-height:1.8;
+  resize:none;
+  outline:none;
+}
+.flame {
+  cursor:pointer;
+  font-size:24px;
+  transition: transform 0.1s ease;
+}
+.flame.selected { transform: scale(1.2); }
+.msg {
+  border-left:4px solid #ffd59e;
+  padding:8px 12px;
+  margin-bottom:10px;
+}
+.name { font-weight:bold; color:#d48806; }
+.navbar {
+  display:flex;
+  justify-content:space-around;
+}
+.navbar button.active {
+  border-bottom:2px solid var(--accent-dark);
+}
+</style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <div class="topbar">
-        <div class="logo" aria-label="SunSet 로고">
-          <svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#g)" d="M12 2c1.5 3.2-1 4.4-1 7 0 1.6 1.5 2.8 3.2 2.2C14 13 13 15 10.7 15 8 15 6 12.9 6 10.5 6 6.7 9.3 5 12 2z"/><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffb36a"/><stop offset="1" stop-color="#ff6a00"/></linearGradient></defs></svg>
-          <span>SunSet</span>
-        </div>
-        <span class="pill">MVP</span>
-      </div>
-    </header>
+<div class="app">
+<header>
+  <h1>SunSet</h1>
+</header>
+<main>
+  <!-- 홈 -->
+  <section id="home" class="active">
+    <div class="card">
+      <p><strong>오늘의 질문</strong></p>
+      <p id="qText">오늘은 무엇이 평소보다 무겁게 느껴졌나요?</p>
+      <button class="btn-primary" data-nav="editor">일기 쓰기</button>
+      <button class="btn-secondary" data-nav="map">캠프파이어 맵</button>
+    </div>
+  </section>
 
-    <main>
-      <section id="home" class="active">
-        <div class="home-grid">
-          <article class="card question-card">
-            <p class="q-title">오늘의 질문</p>
-            <p class="q-body" id="qText">오늘은 무엇이 평소보다 무겁게 느껴졌나요?</p>
-            <div class="row">
-              <button class="btn" data-nav="editor">일기 쓰기</button>
-              <button class="btn ghost" data-nav="map">캠프파이어 맵</button>
-            </div>
-          </article>
+  <!-- 일기 작성 -->
+  <section id="editor" class="card">
+    <p>질문: <span id="qText2">오늘은 무엇이 평소보다 무겁게 느껴졌나요?</span></p>
+    <textarea id="entry" placeholder="여기에 오늘의 이야기를 적어주세요…"></textarea>
+    <br><br>
+    <button class="btn-primary" data-nav="summary">AI 요약</button>
+    <button class="btn-secondary" data-nav="visibility">공개 범위 설정</button>
+  </section>
 
-          <aside class="card" style="padding:18px">
-            <p class="q-title">내 상태</p>
-            <div class="chip" title="공개 범위">익명 클러스터</div>
-            <div class="chip" title="기분">🌫 흐림</div>
-          </aside>
-        </div>
-      </section>
+  <!-- 공개 범위 -->
+  <section id="visibility" class="card">
+    <p><strong>공개 범위 설정</strong></p>
+    <label><input type="radio" name="vis" value="나만 보기"> 나만 보기</label><br>
+    <label><input type="radio" name="vis" value="친구 공개"> 친구 공개</label><br>
+    <label><input type="radio" name="vis" value="익명 클러스터" checked> 익명 클러스터</label><br>
+    <label><input type="radio" name="vis" value="전체 공개"> 전체 공개</label><br><br>
+    <button class="btn-primary" data-nav="editor">확인</button>
+  </section>
 
-      <section id="editor" class="card editor">
-        <div class="hint">작성 중: <strong id="qText2">오늘은 무엇이 평소보다 무겁게 느껴졌나요?</strong></div>
-        <textarea id="entry" placeholder="자유롭게 작성하세요…"></textarea>
-        <div class="row">
-          <button class="btn" data-nav="summary">AI 요약</button>
-          <button class="btn ghost" data-nav="visibility">공개 범위 설정</button>
-        </div>
-      </section>
+  <!-- AI 요약 -->
+  <section id="summary" class="card">
+    <p><strong>AI 요약</strong></p>
+    <p id="sumText">당신은 흐리고 단절된 기분을 느꼈으며, 조용하고 부드러운 연결을 원했습니다.</p>
+    <p><strong>키워드:</strong> 🌫 흐림, 🌙 기운 없음, 🤝 연결 희망</p>
+    <button class="btn-primary" data-nav="map">캠프파이어 맵으로</button>
+  </section>
 
-      <section id="visibility" class="card editor" aria-labelledby="visLabel">
-        <h3 id="visLabel" style="margin:0">공개 범위 설정</h3>
-        <label><input type="radio" name="vis" value="private"> 나만 보기</label>
-        <label><input type="radio" name="vis" value="friends"> 친구 공개</label>
-        <label><input type="radio" name="vis" value="cluster" checked> 익명 클러스터</label>
-        <label><input type="radio" name="vis" value="public"> 전체 공개</label>
-        <div class="row"><button class="btn" data-nav="editor">확인</button></div>
-      </section>
+  <!-- 맵 -->
+  <section id="map" class="card">
+    <p><strong>캠프파이어 맵</strong></p>
+    <div>
+      <span class="flame" data-cluster="A">🔥</span>
+      <span class="flame" data-cluster="B">🔥</span>
+      <span class="flame" data-cluster="C">🔥</span>
+    </div>
+    <br>
+    <button class="btn-primary" id="openCampfire">선택한 캠프파이어 열기</button>
+    <button class="btn-secondary" data-nav="home">뒤로</button>
+  </section>
 
-      <section id="summary" class="card summary">
-        <h3 style="margin:0">AI 요약</h3>
-        <div class="kv"><div>요약</div><div id="sumText">당신은 흐리고 단절된 기분을 느꼈으며, 조용하고 부드러운 연결을 원했습니다.</div></div>
-        <div class="kv"><div>키워드</div><div>
-          <span class="chip">🌫 흐림</span>
-          <span class="chip">🌙 기운 없음</span>
-          <span class="chip">🤝 연결 희망</span>
-        </div></div>
-        <div class="row"><button class="btn" data-nav="map">캠프파이어 맵으로</button></div>
-      </section>
-
-      <section id="map" class="card map">
-        <h3 style="margin:6px 0 10px">캠프파이어 맵</h3>
-        <div class="map-wrap" id="mapWrap" aria-label="세 개의 클러스터">
-          <div class="flame-pin" style="left:26%; top:62%" data-cluster="A" title="성찰 · 42명">🔸</div>
-          <div class="flame-pin" style="left:54%; top:36%" data-cluster="B" title="예민함 · 38명">🔶</div>
-          <div class="flame-pin" style="left:74%; top:68%" data-cluster="C" title="차분함 · 51명">🟠</div>
-        </div>
-        <div class="row" style="margin-top:12px"><button class="btn" data-nav="campfire">선택한 캠프파이어 열기</button><button class="btn ghost" data-nav="home">뒤로</button></div>
-      </section>
-
-      <section id="campfire" class="card campfire">
-        <div class="campfire-head">
-          <div class="row" style="justify-content:space-between">
-            <div class="logo"><svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path fill="url(#g)" d="M12 2c1.5 3.2-1 4.4-1 7 0 1.6 1.5 2.8 3.2 2.2C14 13 13 15 10.7 15 8 15 6 12.9 6 10.5 6 6.7 9.3 5 12 2z"/></svg><strong>캠프파이어</strong></div>
-            <div class="countdown"><span id="timeLeft">--:--:--</span> 후에 이 불이 꺼집니다</div>
-          </div>
-        </div>
-        <div class="chat" id="chat">
-          <div class="msg"><div class="name">Emily</div><div>요즘 단절감을 느끼고 있어요. 이유는 잘 모르겠어요.</div><div class="mood">[기분: 🌫 흐림]</div></div>
-          <div class="msg"><div class="name">Anniel</div><div>아마 날씨 때문일지도… 어제도 일기에 썼어요.</div><div class="mood">[기분: ✨ 성찰]</div></div>
-          <div class="msg"><div class="name">Alex</div><div>저도 그래요. 고요함이 그립지만 연결도 원해요.</div><div class="mood">[기분: 🫧 예민함]</div></div>
-          <div class="msg"><div class="name">Mia</div><div>이 시간을 ‘함께하는 멈춤’이라 부르고, 존중해요.</div><div class="mood">[기분: 🌿 차분함]</div></div>
-        </div>
-        <div class="inputbar">
-          <div class="inputrow">
-            <input class="textin" id="msgInput" placeholder="메시지를 입력하세요…" aria-label="메시지를 입력하세요" />
-            <button class="btn" id="send">보내기</button>
-            <button class="btn ghost" data-nav="home">완료</button>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      <nav class="nav" aria-label="주 메뉴">
-        <button data-nav="home" class="active">홈</button>
-        <button data-nav="editor">쓰기</button>
-        <button data-nav="map">캠프파이어</button>
-      </nav>
-    </footer>
+  <!-- 캠프파이어 -->
+  <section id="campfire" class="card">
+    <p><strong>캠프파이어 채팅</strong></p>
+    <div id="chat">
+      <div class="msg"><div class="name">Emily</div>요즘 단절감을 느끼고 있어요.</div>
+      <div class="msg"><div class="name">Alex</div>저도 그래요. 고요함이 그립지만 연결도 원해요.</div>
+    </div>
+    <input type="text" id="msgInput" placeholder="메시지를 입력하세요…" style="width:80%">
+    <button class="btn-primary" id="sendMsg">보내기</button>
+    <br><br>
+    <button class="btn-secondary" data-nav="home">완료</button>
+  </section>
+</main>
+<footer>
+  <div class="navbar">
+    <button data-nav="home" class="active">홈</button>
+    <button data-nav="editor">쓰기</button>
+    <button data-nav="map">맵</button>
   </div>
+</footer>
+</div>
 
-  <script>
-    /* JS 로직은 동일, 출력 텍스트만 한국어로 변경 */
-  </script>
+<script>
+// 네비게이션
+const sections = document.querySelectorAll("main section");
+const navBtns = document.querySelectorAll("[data-nav]");
+function go(id){
+  sections.forEach(s => s.classList.toggle("active", s.id === id));
+  navBtns.forEach(b => b.classList.toggle("active", b.dataset.nav === id));
+}
+navBtns.forEach(b => b.addEventListener("click", () => go(b.dataset.nav)));
+
+// 맵 불꽃 선택
+let selectedCluster = null;
+document.querySelectorAll(".flame").forEach(f=>{
+  f.addEventListener("click", ()=>{
+    document.querySelectorAll(".flame").forEach(fl=>fl.classList.remove("selected"));
+    f.classList.add("selected");
+    selectedCluster = f.dataset.cluster;
+  });
+});
+
+// 캠프파이어 열기 버튼
+document.getElementById("openCampfire").addEventListener("click", ()=>{
+  if(selectedCluster){
+    go("campfire");
+  } else {
+    alert("캠프파이어를 선택하세요.");
+  }
+});
+
+// AI 요약 반영
+document.querySelector('[data-nav="summary"]').addEventListener("click", ()=>{
+  const txt = document.getElementById("entry").value.trim();
+  document.getElementById("sumText").textContent = txt ? 
+    `요약: "${txt.slice(0,30)}..."` : 
+    "당신은 흐리고 단절된 기분을 느꼈으며, 조용하고 부드러운 연결을 원했습니다.";
+});
+
+// 채팅 보내기
+document.getElementById("sendMsg").addEventListener("click", ()=>{
+  const val = document.getElementById("msgInput").value.trim();
+  if(!val) return;
+  const div = document.createElement("div");
+  div.className = "msg";
+  div.innerHTML = `<div class="name">나</div>${val}`;
+  document.getElementById("chat").appendChild(div);
+  document.getElementById("msgInput").value = "";
+});
+</script>
 </body>
 </html>
 
-
-  <script>
-    // tiny view router
-    const sections = Array.from(document.querySelectorAll('main section'));
-    const navButtons = Array.from(document.querySelectorAll('[data-nav]'));
-    function go(id){
-      sections.forEach(s=>s.classList.toggle('active', s.id===id));
-      navButtons.forEach(b=>b.classList.toggle('active', b.dataset.nav===id));
-      location.hash = id;
-    }
-    navButtons.forEach(b=>b.addEventListener('click', ()=>go(b.dataset.nav)));
-    window.addEventListener('hashchange', ()=>{
-      const id = location.hash.replace('#','')||'home';
-      if(document.getElementById(id)) go(id);
-    });
-    // default route
-    go(location.hash.replace('#','')||'home');
-
-    // simple countdown: 23h from now (demo)
-    const end = Date.now()+23*3600*1000+58*60*1000+43*1000; // mimic screenshot timing
-    const elTime = document.getElementById('timeLeft');
-    function tick(){
-      const left = Math.max(0, end - Date.now());
-      const h = String(Math.floor(left/3600000)).padStart(2,'0');
-      const m = String(Math.floor((left%3600000)/60000)).padStart(2,'0');
-      const s = String(Math.floor((left%60000)/1000)).padStart(2,'0');
-      elTime.textContent = `${h}:${m}:${s}`;
-      if(left>0) requestAnimationFrame(tick);
-    }
-    tick();
-
-    // campfire map selection (stores to state)
-    let selectedCluster = 'A';
-    document.querySelectorAll('.flame-pin').forEach(pin=>{
-      pin.addEventListener('click', ()=>{
-        selectedCluster = pin.dataset.cluster;
-        pin.style.filter='drop-shadow(0 0 10px rgba(255,138,60,.8))';
-        setTimeout(()=>pin.style.filter='', 400);
-      });
-    });
-
-    // fake AI summary generation from textarea (tiny demo)
-    const entry = document.getElementById('entry');
-    const sumText = document.getElementById('sumText');
-    document.querySelector('[data-nav="summary"]').addEventListener('click', ()=>{
-      const t = entry.value.trim();
-      if(t.length>20){
-        sumText.textContent = 'You seem thoughtful today. Core theme: gentle fatigue and a wish for quiet connection.';
-      } else {
-        sumText.textContent = 'You felt cloudy and disconnected, craving quiet and gentle connection.';
-      }
-    });
-
-    // chat sending – appends message locally
-    const chat = document.getElementById('chat');
-    document.getElementById('send').addEventListener('click', ()=>{
-      const v = document.getElementById('msgInput').value.trim();
-      if(!v) return;
-      const wrap = document.createElement('div');
-      wrap.className='msg';
-      wrap.innerHTML = `<div class="name">You</div><div>${escapeHtml(v)}</div><div class="mood">[Mood: 🔸 present]</div>`;
-      chat.appendChild(wrap);
-      document.getElementById('msgInput').value='';
-      chat.scrollTo({top:chat.scrollHeight, behavior:'smooth'});
-    });
-    function escapeHtml(str){
-      return str.replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s]));
-    }
-  </script>
-</body>
-</html>
