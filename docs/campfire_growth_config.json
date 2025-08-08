@@ -1,0 +1,157 @@
+{
+  "version": "1.0",
+  "formula": "fire_score = w_len*length + w_depth*depth + w_share*shares + w_open*unique_opens + w_streak*streak_days",
+  "weights": {
+    "w_len": 1.0,
+    "w_depth": 2.0,
+    "w_share": 3.0,
+    "w_open": 0.5,
+    "w_streak": 1.5
+  },
+  "decay": {
+    "inactive_hours": 48,
+    "multiplier": 0.9
+  },
+  "length_buckets": [
+    {
+      "min": 0,
+      "max": 49,
+      "log_units": 0.5,
+      "note": "짧은 글 스팸 방지"
+    },
+    {
+      "min": 50,
+      "max": 199,
+      "log_units": 2
+    },
+    {
+      "min": 200,
+      "max": null,
+      "log_units": 3,
+      "bonus": {
+        "particles": "gold_spark",
+        "toast": "장작 +3, 불이 커졌어요!"
+      }
+    }
+  ],
+  "levels": [
+    {
+      "level": 0,
+      "name": "불씨",
+      "min_score": 0,
+      "max_score": 9,
+      "visual": {
+        "flame_scale": 0.6,
+        "glow": 0.1,
+        "palette": "ember"
+      }
+    },
+    {
+      "level": 1,
+      "name": "작은 불",
+      "min_score": 10,
+      "max_score": 19,
+      "visual": {
+        "flame_scale": 0.8,
+        "glow": 0.2,
+        "palette": "warm"
+      }
+    },
+    {
+      "level": 2,
+      "name": "안정 불",
+      "min_score": 20,
+      "max_score": 29,
+      "visual": {
+        "flame_scale": 1.0,
+        "glow": 0.3,
+        "sound": "crackle_soft"
+      }
+    },
+    {
+      "level": 3,
+      "name": "모닥불",
+      "min_score": 30,
+      "max_score": 49,
+      "visual": {
+        "flame_scale": 1.2,
+        "glow": 0.45,
+        "particles": "ember_small"
+      }
+    },
+    {
+      "level": 4,
+      "name": "활활",
+      "min_score": 50,
+      "max_score": 69,
+      "visual": {
+        "flame_scale": 1.35,
+        "glow": 0.6,
+        "aura": 0.2
+      }
+    },
+    {
+      "level": 5,
+      "name": "캠프의 중심",
+      "min_score": 70,
+      "max_score": 99,
+      "visual": {
+        "flame_scale": 1.55,
+        "glow": 0.8,
+        "particles": "ember_medium",
+        "splash_to_neighbors": true
+      }
+    },
+    {
+      "level": 6,
+      "name": "별빛 불꽃",
+      "min_score": 100,
+      "max_score": 139,
+      "visual": {
+        "flame_scale": 1.8,
+        "glow": 1.0,
+        "particles": "star_spark",
+        "theme_unlock": "twilight"
+      }
+    },
+    {
+      "level": 7,
+      "name": "축제 불꽃(한정)",
+      "min_score": 140,
+      "max_score": null,
+      "visual": {
+        "flame_scale": 2.0,
+        "glow": 1.2,
+        "particles": "festival",
+        "duration_hours": 24
+      }
+    }
+  ],
+  "share_rules": {
+    "share_increment": {
+      "log_units": 1,
+      "score": 3
+    },
+    "unique_open_increment": {
+      "score": 1
+    },
+    "dedupe": {
+      "repeat_share_counts_once": true,
+      "unique_open_window_minutes": 60
+    }
+  },
+  "privacy": {
+    "visibility": [
+      "private",
+      "camp",
+      "anonymous_public",
+      "public"
+    ],
+    "default": "private"
+  },
+  "dock_bonus": {
+    "enabled": true,
+    "log_units": 1,
+    "note": "Dock 상태에서 작성 시 보너스"
+  }
+}
