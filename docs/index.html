@@ -1,326 +1,4 @@
-// 캠프파이어 데이터 (시뮬레이션)
-        let campfirePosts = [
-            {
-                id: 1,
-                content: "오늘 첫눈을 보면서 어린 시절이 생각났어요. 그때는 모든 게 신기하고 아름다웠는데...",
-                emotion: "nostalgic",
-                weather: "snowy",
-                timestamp: new Date(Date.now() - 3600000),
-                likes: 5,
-                reactions: { "❤️": 3, "🤗": 2 }
-            },
-            {
-                id: 2,
-                content: "비 오는 날이면 항상 창가에 앉아서 커피를 마시게 돼요. 이 평온함이 좋아요.",
-                emotion: "calm",
-                weather: "rainy",
-                timestamp: new Date(Date.now() - 7200000),
-                likes: 8,
-                reactions: { "☕": 4, "💙": 2, "🌧️": 2 }
-            },
-            {
-                id: 3,
-                content: "친구들과 공원에서 피크닉! 햇살이 따뜻하고 바람이 살랑살랑~ 이런 날이 행복이죠 😊",
-                emotion: "happy",
-                weather: "sunny", 
-                timestamp: new Date(Date.now() - 10800000),
-                likes: 12,
-                reactions: { "😊": 5, "☀️": 3, "🌸": 4 }
-            },
-            {
-                id: 4,
-                content: "혼자 있는 시간이 필요했어요. 조용한 카페에서 책 읽으며 마음을 정리하는 중이에요.",
-                emotion: "calm",
-                weather: "cloudy",
-                timestamp: new Date(Date.now() - 14400000),
-                likes: 6,
-                reactions: { "📚": 3, "💭": 2, "☁️": 1 }
-            },
-            {
-                id: 5,
-                content: "새로운 도전을 시작했어요! 두렵지만 설레는 마음이 더 커요. 화이팅!",
-                emotion: "energetic",
-                weather: "sunny",
-                timestamp: new Date(Date.now() - 18000000),
-                likes: 15,
-                reactions: { "💪": 6, "⚡": 4, "🔥": 5 }
-            },
-            {
-                id: 6,
-                content: "오늘은 조금 힘든 하루였어요. 하지만 내일은 분명 더 나을 거예요.",
-                emotion: "sad",
-                weather: "cloudy",
-                timestamp: new Date(Date.now() - 21600000),
-                likes: 9,
-                reactions: { "🤗": 4, "💙": 3, "🌈": 2 }
-            }
-        ];
-
-        // 뷰 전환 함수
-        function showView(viewName) {
-            // 모든 뷰 숨기기
-            document.getElementById('homeView').style.display = 'none';
-            document.getElementById('statsView').style.display = 'none';
-            document.getElementById('campfireView').style.display = 'none';
-            
-            // 모든 네비게이션 버튼 비활성화
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            
-            // 선택된 뷰 표시
-            if (viewName === 'home') {
-                document.getElementById('homeView').style.display = 'block';
-                document.querySelectorAll('.nav-btn')[0].classList.add('active');
-                setTimeout(() => document.getElementById('mainTextarea').focus(), 100);
-            } else if (viewName === 'stats') {
-                document.getElementById('statsView').style.display = 'block';
-                document.querySelectorAll('.nav-btn')[2].classList.add('active');
-                updateStatsView();
-            } else if (viewName === 'campfire') {
-                document.getElementById('campfireView').style.display = 'block';
-                document.querySelectorAll('.nav-btn')[1].classList.add('active');
-                updateCampfireView();
-            }
-        }
-
-        // 통계 뷰 업데이트
-        function updateStatsView() {
-            const stats = calculateStats();
-            
-            document.getElementById('totalEntries').textContent = stats.totalEntries;
-            document.getElementById('avgLength').textContent = stats.avgLength;
-            document.getElementById('streakDays').textContent = stats.streakDays;
-            document.getElementById('topEmotion').textContent = stats.topEmotionIcon;
-            
-            // 감정 차트 업데이트
-            updateEmotionChart(stats.emotionCounts);
-            
-            // 날씨-감정 매트릭스 업데이트
-            updateWeatherMatrix(stats.weatherEmotions);
-            
-            // 시간대별 차트 업데이트
-            updateTimeChart(stats.timeActivity);
-        }
-
-        function calculateStats() {
-            if (entryHistory.length === 0) {
-                return {
-                    totalEntries: 0,
-                    avgLength: 0,
-                    streakDays: 0,
-                    topEmotionIcon: '😊',
-                    emotionCounts: {},
-                    weatherEmotions: {},
-                    timeActivity: {}
-                };
-            }
-            
-            const emotionCounts = {};
-            const weatherEmotions = {};
-            const timeActivity = Array(24).fill(0);
-            let totalLength = 0;
-            
-            entryHistory.forEach(entry => {
-                // 감정 카운트
-                emotionCounts[entry.emotion] = (emotionCounts[entry.emotion] || 0) + 1;
-                
-                // 날씨-감정 조합
-                const weatherKey = `${entry.weather?.type || 'unknown'}_${entry.emotion}`;
-                weatherEmotions[weatherKey] = (weatherEmotions[weatherKey] || 0) + 1;
-                
-                // 시간대별 활동
-                const hour = new Date(entry.timestamp).getHours();
-                timeActivity[hour]++;
-                
-                // 총 글자 수
-                totalLength += entry.text.length;
-            });
-            
-            const topEmotion = Object.keys(emotionCounts).reduce((a, b) => 
-                emotionCounts[a] > emotionCounts[b] ? a : b, 'happy');
-            
-            const emotionIcons = {
-                happy: '😊',
-                sad: '😢', 
-                calm: '😌',
-                energetic: '⚡',
-                nostalgic: '🥀'
-            };
-            
-            return {
-                totalEntries: entryHistory.length,
-                avgLength: Math.round(totalLength / entryHistory.length),
-                streakDays: calculateStreak(),
-                topEmotionIcon: emotionIcons[topEmotion] || '😊',
-                emotionCounts,
-                weatherEmotions,
-                timeActivity
-            };
-        }
-
-        function calculateStreak() {
-            // 연속 기록 일수 계산 (간단한 버전)
-            const today = new Date();
-            let streak = 0;
-            
-            for (let i = 0; i < 30; i++) {
-                const checkDate = new Date(today);
-                checkDate.setDate(today.getDate() - i);
-                
-                const hasEntry = entryHistory.some(entry => {
-                    const entryDate = new Date(entry.timestamp);
-                    return entryDate.toDateString() === checkDate.toDateString();
-                });
-                
-                if (hasEntry) {
-                    streak++;
-                } else {
-                    break;
-                }
-            }
-            
-            return streak;
-        }
-
-        function updateEmotionChart(emotionCounts) {
-            const chartContainer = document.getElementById('emotionChart');
-            const emotions = {
-                happy: { icon: '😊', label: '기쁨' },
-                calm: { icon: '😌', label: '평온' },
-                energetic: { icon: '⚡', label: '활기' },
-                sad: { icon: '😢', label: '슬픔' },
-                nostalgic: { icon: '🥀', label: '그리움' }
-            };
-            
-            const maxCount = Math.max(...Object.values(emotionCounts), 1);
-            
-            chartContainer.innerHTML = Object.keys(emotions).map(emotion => {
-                const count = emotionCounts[emotion] || 0;
-                const percentage = (count / maxCount) * 100;
-                
-                return `
-                    <div class="emotion-bar">
-                        <div class="emotion-icon">${emotions[emotion].icon}</div>
-                        <div class="emotion-progress">
-                            <div class="emotion-fill" style="width: ${percentage}%"></div>
-                        </div>
-                        <div class="emotion-count">${count}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function updateWeatherMatrix(weatherEmotions) {
-            const matrixContainer = document.getElementById('weatherMatrix');
-            const weathers = ['sunny', 'rainy', 'cloudy', 'snowy'];
-            const emotions = ['happy', 'calm', 'energetic', 'sad'];
-            
-            const weatherIcons = {
-                sunny: '☀️',
-                rainy: '🌧️', 
-                cloudy: '☁️',
-                snowy: '❄️'
-            };
-            
-            const emotionIcons = {
-                happy: '😊',
-                calm: '😌',
-                energetic: '⚡',
-                sad: '😢'
-            };
-            
-            matrixContainer.innerHTML = weathers.map(weather => 
-                emotions.map(emotion => {
-                    const key = `${weather}_${emotion}`;
-                    const count = weatherEmotions[key] || 0;
-                    const isActive = count > 0;
-                    
-                    return `
-                        <div class="matrix-cell ${isActive ? 'active' : ''}">
-                            <div>${weatherIcons[weather]}</div>
-                            <div>${emotionIcons[emotion]}</div>
-                            <div style="font-size: 10px; margin-top: 2px;">${count}</div>
-                        </div>
-                    `;
-                }).join('')
-            ).join('');
-        }
-
-        function updateTimeChart(timeActivity) {
-            const chartContainer = document.getElementById('timeChart');
-            const maxActivity = Math.max(...timeActivity, 1);
-            
-            chartContainer.innerHTML = timeActivity.map((count, hour) => {
-                const height = (count / maxActivity) * 60; // 최대 60px
-                const displayHour = hour === 0 ? '12AM' : 
-                                 hour < 12 ? `${hour}AM` : 
-                                 hour === 12 ? '12PM' : `${hour-12}PM`;
-                
-                return `
-                    <div class="time-bar" style="height: ${height}px;">
-                        <div class="time-label">${hour % 6 === 0 ? displayHour : ''}</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // 캠프파이어 뷰 업데이트  
-        function updateCampfireView() {
-            const container = document.getElementById('stickyNotesContainer');
-            
-            container.innerHTML = campfirePosts.map(post => {
-                const emotionIcons = {
-                    happy: '😊',
-                    sad: '😢',
-                    calm: '😌', 
-                    energetic: '⚡',
-                    nostalgic: '🥀'
-                };
-                
-                const weatherIcons = {
-                    sunny: '☀️',
-                    rainy: '🌧️',
-                    cloudy: '☁️',
-                    snowy: '❄️'
-                };
-                
-                const timeAgo = getTimeAgo(post.timestamp);
-                
-                return `
-                    <div class="sticky-note" onclick="interactWithPost(${post.id})">
-                        <div class="note-content">${post.content}</div>
-                        <div class="note-meta">
-                            <div class="note-emotion">
-                                <span>${emotionIcons[post.emotion]}</span>
-                                <span class="note-weather">${weatherIcons[post.weather]}</span>
-                            </div>
-                            <div class="note-time">${timeAgo}</div>
-                        </div>
-                        <div class="reaction-buttons">
-                            ${Object.keys(post.reactions).map(emoji => 
-                                `<button class="reaction-btn" onclick="addReaction(${post.id}, '${emoji}')">${emoji}${post.reactions[emoji]}</button>`
-                            ).join('')}
-                            <button class="note-like-btn ${post.liked ? 'liked' : ''}" onclick="toggleLike(${post.id})">
-                                ❤️ ${post.likes}
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function getTimeAgo(timestamp) {
-            const now = new Date();
-            const diff = now - new Date(timestamp);
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            
-            if (hours < 1) return '방금 전';
-            if (hours < 24) return `${hours}시간 전`;
-            const days = Math.floor(hours / 24);
-            return `${days}일 전`;
-        }
-
-        function interactWithPost(postId) {
-            // 포스트 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -340,30 +18,14 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
             transition: all 1s ease;
         }
 
         /* 날씨별 배경 */
-        body.sunny {
-            background: linear-gradient(135deg, #FDB99B 0%, #CF8BF3 50%, #FDB99B 100%);
-        }
-
-        body.rainy {
-            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
-        }
-
-        body.cloudy {
-            background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%);
-        }
-
-        body.snowy {
-            background: linear-gradient(135deg, #E6DEDD 0%, #4CA1AF 100%);
-        }
-
-        body.night {
-            background: linear-gradient(135deg, #2c3e50 0%, #000428 100%);
-        }
+        body.sunny { background: linear-gradient(135deg, #FDB99B 0%, #CF8BF3 50%, #FDB99B 100%); }
+        body.rainy { background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%); }
+        body.cloudy { background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%); }
+        body.snowy { background: linear-gradient(135deg, #E6DEDD 0%, #4CA1AF 100%); }
 
         .phone-container {
             width: 400px;
@@ -381,10 +43,7 @@
         /* 날씨 애니메이션 */
         .weather-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none;
             overflow: hidden;
             border-radius: 30px;
@@ -392,39 +51,25 @@
 
         .rain-drop {
             position: absolute;
-            width: 2px;
-            height: 12px;
+            width: 2px; height: 12px;
             background: linear-gradient(transparent, rgba(255,255,255,0.6));
             animation: rainFall 1s linear infinite;
         }
-
-        @keyframes rainFall {
-            to { transform: translateY(700px); }
-        }
+        @keyframes rainFall { to { transform: translateY(700px); } }
 
         .snow-flake {
             position: absolute;
-            color: white;
-            font-size: 14px;
+            color: white; font-size: 14px;
             animation: snowFall 3s linear infinite;
         }
-
-        @keyframes snowFall {
-            to { transform: translateY(700px) rotate(360deg); }
-        }
+        @keyframes snowFall { to { transform: translateY(700px) rotate(360deg); } }
 
         .sun-ray {
-            position: absolute;
-            width: 100%;
-            height: 100%;
+            position: absolute; width: 100%; height: 100%;
             background: radial-gradient(circle at 30% 30%, rgba(255,223,128,0.1) 0%, transparent 50%);
             animation: sunPulse 4s ease-in-out infinite;
         }
-
-        @keyframes sunPulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.6; }
-        }
+        @keyframes sunPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
 
         /* 헤더 */
         .header {
@@ -444,8 +89,7 @@
         }
 
         .logo-icon {
-            width: 32px;
-            height: 32px;
+            width: 32px; height: 32px;
             background: linear-gradient(45deg, #ff6b35, #f7931e);
             border-radius: 8px;
             display: flex;
@@ -460,28 +104,23 @@
             gap: 8px;
             font-size: 14px;
             opacity: 0.9;
+            cursor: pointer;
         }
 
-        .weather-icon {
-            font-size: 20px;
-        }
-
-        .temp {
-            font-weight: 600;
-        }
-
-        /* 메인 컨테이너 */
-        .main-container {
+        /* 메인 뷰 */
+        .main-view {
+            display: none;
             height: calc(100% - 80px);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
             color: white;
-            position: relative;
-            z-index: 5;
+            overflow-y: auto;
+            padding-bottom: 10px;
         }
 
-        /* 위치 정보 */
+        .main-view.active {
+            display: block;
+        }
+
+        /* 홈 화면 */
         .location-bar {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
@@ -492,14 +131,7 @@
             gap: 8px;
             font-size: 14px;
             border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        /* 일기 입력 영역 */
-        .entry-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            margin-bottom: 15px;
         }
 
         .weather-prompt {
@@ -510,11 +142,12 @@
             font-size: 14px;
             color: #ff6b35;
             border-left: 4px solid #ff6b35;
-            transition: all 0.5s ease;
+            margin-bottom: 15px;
         }
 
         .main-textarea {
-            flex: 1;
+            width: 100%;
+            height: 200px;
             background: rgba(255,255,255,0.05);
             border: 2px solid rgba(255,255,255,0.2);
             border-radius: 20px;
@@ -523,10 +156,10 @@
             font-size: 16px;
             resize: none;
             outline: none;
-            transition: all 0.3s ease;
             font-family: inherit;
             line-height: 1.5;
-            min-height: 200px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
         }
 
         .main-textarea:focus {
@@ -539,13 +172,29 @@
             color: rgba(255,255,255,0.4);
         }
 
-        /* 음악 추천 섹션 */
+        .emotion-indicator {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .emotion-tag {
+            background: rgba(255,107,53,0.2);
+            color: #ff6b35;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            border: 1px solid rgba(255,107,53,0.3);
+        }
+
         .music-recommendation {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 20px;
             border: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 15px;
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.5s ease;
@@ -556,23 +205,11 @@
             transform: translateY(0);
         }
 
-        .music-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
         .music-title {
             font-size: 16px;
             font-weight: 600;
             color: #ff6b35;
-        }
-
-        .music-subtitle {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .music-track {
@@ -593,8 +230,7 @@
         }
 
         .track-artwork {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             background: linear-gradient(45deg, #ff6b35, #f7931e);
             border-radius: 8px;
             display: flex;
@@ -619,8 +255,7 @@
         }
 
         .play-btn {
-            width: 32px;
-            height: 32px;
+            width: 32px; height: 32px;
             background: rgba(255,107,53,0.8);
             border: none;
             border-radius: 50%;
@@ -641,6 +276,7 @@
         .action-buttons {
             display: flex;
             gap: 10px;
+            margin-bottom: 15px;
         }
 
         .btn {
@@ -661,113 +297,17 @@
             box-shadow: 0 10px 25px rgba(255,107,53,0.4);
         }
 
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
         .btn-secondary {
             background: rgba(255,255,255,0.2);
             backdrop-filter: blur(10px);
         }
 
-        /* 하단 네비게이션 */
-        .bottom-nav {
-            position: absolute;
-            bottom: 15px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-around;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 12px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .nav-btn {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.6);
-            font-size: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 8px;
-            border-radius: 12px;
-        }
-
-        .nav-btn.active {
-            color: #ff6b35;
-            background: rgba(255,107,53,0.2);
-            transform: scale(1.1);
-        }
-
-        /* 토스트 */
-        .toast {
-            position: fixed;
-            top: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255,107,53,0.95);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 25px;
-            font-size: 14px;
-            z-index: 2000;
-            backdrop-filter: blur(10px);
-            animation: toastSlide 0.3s ease-out;
-            box-shadow: 0 10px 30px rgba(255,107,53,0.4);
-        }
-
-        @keyframes toastSlide {
-            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-
-        /* 로딩 상태 */
-        .loading {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #ff6b35;
-        }
-
-        .loading-spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255,107,53,0.3);
-            border-top: 2px solid #ff6b35;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* 통계 화면 스타일 */
-        .stats-view {
-            height: calc(100% - 80px);
-            color: white;
-            overflow-y: auto;
-            padding-bottom: 20px;
-        }
-
-        .stats-header h2 {
-            text-align: center;
-            font-size: 24px;
-            margin-bottom: 25px;
-        }
-
+        /* 통계 화면 */
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
@@ -777,12 +317,6 @@
             border-radius: 15px;
             padding: 20px;
             text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(255,107,53,0.2);
         }
 
         .stat-number {
@@ -797,7 +331,7 @@
             opacity: 0.8;
         }
 
-        .chart-container, .weather-emotion-matrix, .time-activity {
+        .chart-container {
             background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
@@ -844,76 +378,15 @@
             min-width: 20px;
         }
 
-        .matrix-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-
-        .matrix-cell {
-            aspect-ratio: 1;
-            background: rgba(255,255,255,0.1);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
+        /* 캠프파이어 화면 */
+        .campfire-header {
             text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .matrix-cell.active {
-            background: rgba(255,107,53,0.3);
-            transform: scale(1.05);
-        }
-
-        .time-chart {
-            display: flex;
-            align-items: end;
-            justify-content: space-between;
-            height: 80px;
-            gap: 4px;
-        }
-
-        .time-bar {
-            flex: 1;
-            background: rgba(255,107,53,0.3);
-            border-radius: 4px 4px 0 0;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .time-bar:hover {
-            background: rgba(255,107,53,0.6);
-        }
-
-        .time-label {
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 10px;
-            opacity: 0.7;
-        }
-
-        /* 캠프파이어 화면 스타일 */
-        .campfire-view {
-            height: calc(100% - 80px);
-            color: white;
-            overflow-y: auto;
-            padding-bottom: 20px;
-        }
-
-        .campfire-flame-container {
-            text-align: center;
-            margin: 20px 0;
+            margin-bottom: 20px;
         }
 
         .campfire-flame {
             display: inline-block;
-            width: 60px;
-            height: 80px;
+            width: 60px; height: 80px;
             background: radial-gradient(circle, #ff6b35 0%, #ff8c42 50%, #ffd662 100%);
             border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
             animation: flameFlicker 2s ease-in-out infinite alternate;
@@ -929,8 +402,8 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 15px;
-            margin-bottom: 25px;
-            min-height: 300px;
+            margin-bottom: 20px;
+            min-height: 200px;
         }
 
         .sticky-note {
@@ -944,7 +417,6 @@
             transform: rotate(-1deg);
             transition: all 0.3s ease;
             cursor: pointer;
-            position: relative;
             min-height: 120px;
             display: flex;
             flex-direction: column;
@@ -958,11 +430,6 @@
         .sticky-note:nth-child(3n) {
             background: linear-gradient(135deg, #ffd3e1 0%, #fd79a8 100%);
             transform: rotate(-0.5deg);
-        }
-
-        .sticky-note:nth-child(4n) {
-            background: linear-gradient(135deg, #e0aaff 0%, #c77dff 100%);
-            transform: rotate(0.8deg);
         }
 
         .sticky-note:hover {
@@ -985,18 +452,27 @@
             margin-top: auto;
         }
 
-        .note-emotion {
+        .reaction-buttons {
             display: flex;
-            align-items: center;
-            gap: 4px;
+            gap: 5px;
+            margin-top: 8px;
         }
 
-        .note-weather {
+        .reaction-btn, .note-like-btn {
+            background: none;
+            border: none;
             font-size: 12px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            padding: 2px 4px;
+            border-radius: 4px;
         }
 
-        .note-time {
-            font-size: 9px;
+        .reaction-btn:hover, .note-like-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+            background: rgba(0,0,0,0.1);
         }
 
         .new-post-section {
@@ -1018,9 +494,9 @@
             font-size: 14px;
             resize: vertical;
             outline: none;
-            transition: all 0.3s ease;
             font-family: inherit;
             line-height: 1.5;
+            margin-bottom: 10px;
         }
 
         .campfire-textarea:focus {
@@ -1032,119 +508,66 @@
             color: rgba(255,255,255,0.5);
         }
 
-        /* 좋아요 버튼 */
-        .note-like-btn {
-            background: none;
-            border: none;
-            color: #e74c3c;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 2px 6px;
-            border-radius: 4px;
+        /* 하단 네비게이션 */
+        .bottom-nav {
+            position: absolute;
+            bottom: 15px;
+            left: 20px; right: 20px;
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        .note-like-btn:hover {
-            background: rgba(231,76,60,0.2);
+        .nav-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        .nav-btn.active {
+            color: #ff6b35;
+            background: rgba(255,107,53,0.2);
             transform: scale(1.1);
         }
 
-        .note-like-btn.liked {
-            color: #c0392b;
-            background: rgba(231,76,60,0.1);
-        }
-
-        /* 반응 이모지 */
-        .reaction-buttons {
-            display: flex;
-            gap: 5px;
-            margin-top: 8px;
-        }
-
-        .reaction-btn {
-            background: none;
-            border: none;
+        /* 토스트 */
+        .toast {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,107,53,0.95);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
             font-size: 14px;
-            cursor: pointer;
-            opacity: 0.7;
-            transition: all 0.3s ease;
-            padding: 2px 4px;
-            border-radius: 4px;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(255,107,53,0.4);
+            animation: toastSlide 0.3s ease-out;
         }
 
-        .reaction-btn:hover {
-            opacity: 1;
-            transform: scale(1.2);
-            background: rgba(255,255,255,0.1);
+        @keyframes toastSlide {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            100% { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
 
-        /* 스크롤바 스타일링 */
-        .sticky-notes-container::-webkit-scrollbar,
-        .stats-view::-webkit-scrollbar,
-        .campfire-view::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sticky-notes-container::-webkit-scrollbar-track,
-        .stats-view::-webkit-scrollbar-track,
-        .campfire-view::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.1);
-            border-radius: 3px;
-        }
-
-        .sticky-notes-container::-webkit-scrollbar-thumb,
-        .stats-view::-webkit-scrollbar-thumb,
-        .campfire-view::-webkit-scrollbar-thumb {
-            background: rgba(255,107,53,0.5);
-            border-radius: 3px;
-        }
-
-        /* 감정 분석 인디케이터 */
-        .emotion-indicator {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .emotion-tag {
-            background: rgba(255,107,53,0.2);
-            color: #ff6b35;
-            padding: 4px 10px;
-            border-radius: 15px;
-            font-size: 11px;
-            border: 1px solid rgba(255,107,53,0.3);
-        }
-
-        /* 현재 재생 중인 음악 */
-        .now-playing {
-            background: rgba(255,107,53,0.15);
-            border: 1px solid rgba(255,107,53,0.3);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            display: none;
-        }
-
-        .now-playing.show {
-            display: block;
-            animation: slideIn 0.5s ease;
-        }
-
-        @keyframes slideIn {
-            0% { opacity: 0; transform: translateY(-10px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .now-playing-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-
-        .now-playing-info {
-            font-size: 13px;
-            opacity: 0.8;
+        /* 반응형 */
+        @media (max-width: 480px) {
+            .phone-container {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+            }
         }
     </style>
 </head>
@@ -1159,59 +582,37 @@
                 <div class="logo-icon">🌅</div>
                 <span style="font-weight: 700; font-size: 18px;">SunSet</span>
             </div>
-            <div class="weather-info">
-                <span class="weather-icon" id="weatherIcon">☀️</span>
-                <span class="temp" id="temperature">22°</span>
+            <div class="weather-info" onclick="changeWeather()">
+                <span id="weatherIcon">☀️</span>
+                <span id="temperature">22°</span>
                 <span id="weatherDesc">맑음</span>
             </div>
         </div>
 
-        <!-- 메인 컨테이너 -->
-        <div class="main-container">
-            <!-- 위치 정보 -->
+        <!-- 홈 화면 -->
+        <div class="main-view active" id="homeView">
             <div class="location-bar">
                 <span>📍</span>
-                <span id="locationText">위치 확인 중...</span>
+                <span id="locationText">Seoul, Gangnam</span>
             </div>
 
-            <!-- 현재 재생 중인 음악 -->
-            <div class="now-playing" id="nowPlaying">
-                <div class="now-playing-header">
-                    <span>🎵</span>
-                    <span style="color: #ff6b35; font-weight: 600;">Now Playing</span>
-                </div>
-                <div class="now-playing-info" id="nowPlayingInfo">음악이 재생 중입니다...</div>
+            <div class="weather-prompt" id="weatherPrompt">
+                햇살이 따뜻한 오늘, 마음도 밝은가요? 이 순간의 기분을 써보세요 ☀️
             </div>
 
-            <!-- 일기 섹션 -->
-            <div class="entry-section">
-                <!-- 날씨 기반 프롬프트 -->
-                <div class="weather-prompt" id="weatherPrompt">
-                    오늘의 날씨와 함께 마음을 기록해보세요...
-                </div>
+            <textarea 
+                class="main-textarea" 
+                id="mainTextarea"
+                placeholder="지금 이 순간의 감정을 자유롭게 써보세요...">
+            </textarea>
 
-                <!-- 메인 텍스트에어리어 -->
-                <textarea 
-                    class="main-textarea" 
-                    id="mainTextarea"
-                    placeholder="지금 이 순간의 감정을 자유롭게 써보세요...">
-                </textarea>
+            <div class="emotion-indicator" id="emotionIndicator"></div>
 
-                <!-- 감정 분석 결과 -->
-                <div class="emotion-indicator" id="emotionIndicator"></div>
-            </div>
-
-            <!-- 음악 추천 -->
             <div class="music-recommendation" id="musicRecommendation">
-                <div class="music-header">
-                    <span>🎵</span>
-                    <span class="music-title">오늘의 감정에 어울리는 음악</span>
-                </div>
-                <div class="music-subtitle" id="musicSubtitle">일기 분석 중...</div>
+                <div class="music-title">🎵 오늘의 감정에 어울리는 음악</div>
                 <div id="musicTracks"></div>
             </div>
 
-            <!-- 액션 버튼 -->
             <div class="action-buttons">
                 <button class="btn" onclick="analyzeAndRecommend()">저장 & 음악 추천</button>
                 <button class="btn btn-secondary" onclick="shareEntry()">공유</button>
@@ -1219,84 +620,54 @@
         </div>
 
         <!-- 통계 화면 -->
-        <div class="stats-view" id="statsView" style="display: none;">
-            <div class="stats-header">
-                <h2 style="color: #ff6b35; margin-bottom: 20px;">📊 나의 감정 통계</h2>
-            </div>
+        <div class="main-view" id="statsView">
+            <h2 style="color: #ff6b35; margin-bottom: 20px; text-align: center;">📊 나의 감정 통계</h2>
             
             <div class="stats-grid">
-                <!-- 총 기록 수 -->
                 <div class="stat-card">
                     <div class="stat-number" id="totalEntries">0</div>
                     <div class="stat-label">총 기록</div>
                 </div>
-                
-                <!-- 평균 글자 수 -->
                 <div class="stat-card">
                     <div class="stat-number" id="avgLength">0</div>
                     <div class="stat-label">평균 글자</div>
                 </div>
-                
-                <!-- 연속 기록 -->
                 <div class="stat-card">
                     <div class="stat-number" id="streakDays">0</div>
                     <div class="stat-label">연속 일수</div>
                 </div>
-                
-                <!-- 가장 많은 감정 -->
                 <div class="stat-card">
                     <div class="stat-number" id="topEmotion">😊</div>
                     <div class="stat-label">주요 감정</div>
                 </div>
             </div>
             
-            <!-- 감정 분포 차트 -->
             <div class="chart-container">
                 <h3 style="color: white; margin-bottom: 15px;">감정 분포</h3>
                 <div class="emotion-chart" id="emotionChart"></div>
             </div>
-            
-            <!-- 날씨별 감정 매트릭스 -->
-            <div class="weather-emotion-matrix">
-                <h3 style="color: white; margin-bottom: 15px;">날씨별 기분</h3>
-                <div class="matrix-grid" id="weatherMatrix"></div>
-            </div>
-            
-            <!-- 시간대별 활동 -->
-            <div class="time-activity">
-                <h3 style="color: white; margin-bottom: 15px;">시간대별 기록</h3>
-                <div class="time-chart" id="timeChart"></div>
-            </div>
         </div>
 
         <!-- 캠프파이어 화면 -->
-        <div class="campfire-view" id="campfireView" style="display: none;">
+        <div class="main-view" id="campfireView">
             <div class="campfire-header">
-                <h2 style="color: #ff6b35; text-align: center; margin-bottom: 15px;">🔥 Campfire</h2>
-                <p style="text-align: center; color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 20px;">
-                    다른 사람들의 마음이 담긴 이야기들
-                </p>
+                <h2 style="color: #ff6b35;">🔥 Campfire</h2>
+                <p style="color: rgba(255,255,255,0.8); font-size: 14px;">다른 사람들의 마음이 담긴 이야기들</p>
             </div>
             
-            <!-- 캠프파이어 불꽃 -->
-            <div class="campfire-flame-container">
-                <div class="campfire-flame"></div>
-            </div>
+            <div class="campfire-flame"></div>
             
-            <!-- 스티키노트 컨테이너 -->
             <div class="sticky-notes-container" id="stickyNotesContainer">
                 <!-- 동적으로 생성됨 -->
             </div>
             
-            <!-- 새 포스트 작성 -->
             <div class="new-post-section">
                 <textarea 
                     class="campfire-textarea" 
                     id="campfireTextarea"
-                    placeholder="마음속 이야기를 캠프파이어에 나누어 보세요... (최소 50자)"
-                    maxlength="300">
+                    placeholder="마음속 이야기를 캠프파이어에 나누어 보세요... (최소 50자)">
                 </textarea>
-                <button class="btn" onclick="postToCampfire()" style="margin-top: 10px;">🔥 캠프파이어에 올리기</button>
+                <button class="btn" onclick="postToCampfire()">🔥 캠프파이어에 올리기</button>
             </div>
         </div>
 
@@ -1305,21 +676,51 @@
             <button class="nav-btn active" onclick="showView('home')">🏠</button>
             <button class="nav-btn" onclick="showView('campfire')">🔥</button>
             <button class="nav-btn" onclick="showView('stats')">📊</button>
-            <button class="nav-btn">⚙️</button>
+            <button class="nav-btn" onclick="showSettings()">⚙️</button>
         </div>
     </div>
 
     <script>
         // 전역 상태
         let appState = {
-            weather: null,
-            location: null,
+            weather: { type: 'sunny', temperature: 22, description: '맑음' },
+            location: { city: 'Seoul', district: 'Gangnam' },
             currentEmotion: null,
-            recommendedTracks: [],
-            currentlyPlaying: null
+            recommendedTracks: []
         };
 
-        // 음악 데이터베이스 (실제로는 Spotify API 등을 사용)
+        let entryHistory = [];
+        let campfirePosts = [
+            {
+                id: 1,
+                content: "오늘 첫눈을 보면서 어린 시절이 생각났어요. 그때는 모든 게 신기하고 아름다웠는데...",
+                emotion: "nostalgic",
+                weather: "snowy",
+                timestamp: new Date(Date.now() - 3600000),
+                likes: 5,
+                reactions: { "❤️": 3, "🤗": 2 }
+            },
+            {
+                id: 2,
+                content: "비 오는 날이면 항상 창가에 앉아서 커피를 마시게 돼요. 이 평온함이 좋아요.",
+                emotion: "calm",
+                weather: "rainy", 
+                timestamp: new Date(Date.now() - 7200000),
+                likes: 8,
+                reactions: { "☕": 4, "💙": 2 }
+            },
+            {
+                id: 3,
+                content: "친구들과 공원에서 피크닉! 햇살이 따뜻하고 바람이 살랑살랑~ 이런 날이 행복이죠",
+                emotion: "happy",
+                weather: "sunny",
+                timestamp: new Date(Date.now() - 10800000),
+                likes: 12,
+                reactions: { "😊": 5, "☀️": 3 }
+            }
+        ];
+
+        // 음악 데이터베이스
         const musicDatabase = {
             happy: [
                 { name: "Happy", artist: "Pharrell Williams", emoji: "🎉" },
@@ -1353,72 +754,34 @@
             sunny: "햇살이 따뜻한 오늘, 마음도 밝은가요? 이 순간의 기분을 써보세요 ☀️",
             rainy: "빗소리와 함께 차분해지는 시간, 오늘은 어떤 하루였나요? 🌧️",
             cloudy: "구름 낀 하늘처럼 복잡한 마음이 있다면 털어놓아 보세요 ☁️",
-            snowy: "조용히 내리는 눈처럼, 고요한 마음으로 오늘을 돌아보세요 ❄️",
-            night: "하루의 끝, 별빛 아래서 오늘 하루를 정리해보세요 🌙"
+            snowy: "조용히 내리는 눈처럼, 고요한 마음으로 오늘을 돌아보세요 ❄️"
         };
 
         // 초기화
         document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
+            updateWeatherUI();
+            updateCampfireView();
+            setTimeout(() => document.getElementById('mainTextarea').focus(), 100);
         });
 
-        async function initializeApp() {
-            showToast("SunSet이 시작됩니다...");
+        // 날씨 변경 (데모용)
+        function changeWeather() {
+            const weatherTypes = ['sunny', 'rainy', 'cloudy', 'snowy'];
+            const currentIndex = weatherTypes.indexOf(appState.weather.type);
+            const nextIndex = (currentIndex + 1) % weatherTypes.length;
+            const nextWeather = weatherTypes[nextIndex];
             
-            // 위치 및 날씨 정보 가져오기
-            await getLocationAndWeather();
+            appState.weather.type = nextWeather;
+            appState.weather.description = getWeatherDescription(nextWeather);
+            appState.weather.temperature = Math.floor(Math.random() * 30) + 5;
             
-            // UI 초기 설정
             updateWeatherUI();
-            
-            // 포커스 설정
-            setTimeout(() => {
-                document.getElementById('mainTextarea').focus();
-            }, 500);
-        }
-
-        // 위치 및 날씨 정보 가져오기
-        async function getLocationAndWeather() {
-            try {
-                // 위치 정보 가져오기 (시뮬레이션)
-                appState.location = {
-                    city: "Seoul",
-                    district: "Gangnam"
-                };
-                
-                // 날씨 정보 가져오기 (시뮬레이션)
-                const weatherTypes = ['sunny', 'rainy', 'cloudy', 'snowy'];
-                const randomWeather = weatherTypes[Math.floor(Math.random() * weatherTypes.length)];
-                
-                appState.weather = {
-                    type: randomWeather,
-                    temperature: Math.floor(Math.random() * 30) + 5,
-                    description: getWeatherDescription(randomWeather)
-                };
-                
-                updateLocationDisplay();
-                
-            } catch (error) {
-                console.error('날씨 정보를 가져오는데 실패했습니다:', error);
-                appState.weather = { type: 'sunny', temperature: 22, description: '맑음' };
-            }
+            showToast(`날씨가 ${appState.weather.description}로 변경되었습니다`);
         }
 
         function getWeatherDescription(type) {
-            const descriptions = {
-                sunny: '맑음',
-                rainy: '비',
-                cloudy: '흐림',
-                snowy: '눈'
-            };
+            const descriptions = { sunny: '맑음', rainy: '비', cloudy: '흐림', snowy: '눈' };
             return descriptions[type] || '맑음';
-        }
-
-        function updateLocationDisplay() {
-            const locationText = document.getElementById('locationText');
-            if (appState.location) {
-                locationText.textContent = `${appState.location.city}, ${appState.location.district}`;
-            }
         }
 
         // 날씨 UI 업데이트
@@ -1428,481 +791,13 @@
             const temperature = document.getElementById('temperature');
             const weatherDesc = document.getElementById('weatherDesc');
             const weatherPrompt = document.getElementById('weatherPrompt');
-            const weatherOverlay = document.getElementById('weatherOverlay');
             
-            if (!appState.weather) return;
-            
-            // 배경 변경
             body.className = appState.weather.type;
             
-            // 날씨 정보 표시
-            const icons = {
-                sunny: '☀️',
-                rainy: '🌧️',
-                cloudy: '☁️',
-                snowy: '❄️'
-            };
-            
+            const icons = { sunny: '☀️', rainy: '🌧️', cloudy: '☁️', snowy: '❄️' };
             weatherIcon.textContent = icons[appState.weather.type];
             temperature.textContent = `${appState.weather.temperature}°`;
             weatherDesc.textContent = appState.weather.description;
+            weatherPrompt.textContent = weatherPrompts[appState.weather.type];
             
-            // 프롬프트 업데이트
-            weatherPrompt.textContent = weatherPrompts[appState.weather.type] || weatherPrompts.sunny;
-            
-            // 날씨 애니메이션
-            createWeatherAnimation(appState.weather.type);
-        }
-
-        // 날씨 애니메이션 생성
-        function createWeatherAnimation(weatherType) {
-            const overlay = document.getElementById('weatherOverlay');
-            overlay.innerHTML = '';
-            
-            switch(weatherType) {
-                case 'rainy':
-                    createRainAnimation();
-                    break;
-                case 'snowy':
-                    createSnowAnimation();
-                    break;
-                case 'sunny':
-                    createSunAnimation();
-                    break;
-            }
-        }
-
-        function createRainAnimation() {
-            const overlay = document.getElementById('weatherOverlay');
-            for (let i = 0; i < 30; i++) {
-                const drop = document.createElement('div');
-                drop.className = 'rain-drop';
-                drop.style.left = Math.random() * 100 + '%';
-                drop.style.animationDelay = Math.random() * 1 + 's';
-                drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
-                overlay.appendChild(drop);
-            }
-        }
-
-        function createSnowAnimation() {
-            const overlay = document.getElementById('weatherOverlay');
-            for (let i = 0; i < 20; i++) {
-                const flake = document.createElement('div');
-                flake.className = 'snow-flake';
-                flake.textContent = '❄';
-                flake.style.left = Math.random() * 100 + '%';
-                flake.style.animationDelay = Math.random() * 3 + 's';
-                flake.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                overlay.appendChild(flake);
-            }
-        }
-
-        function createSunAnimation() {
-            const overlay = document.getElementById('weatherOverlay');
-            const sunRay = document.createElement('div');
-            sunRay.className = 'sun-ray';
-            overlay.appendChild(sunRay);
-        }
-
-        // 감정 분석 (시뮬레이션)
-        function analyzeEmotion(text) {
-            if (!text || text.length < 10) return null;
-            
-            const emotionKeywords = {
-                happy: ['기쁘', '행복', '즐거', '웃', '좋', '사랑', '완벽', '성공'],
-                sad: ['슬프', '우울', '눈물', '힘들', '아프', '그리워', '외로', '상처'],
-                calm: ['평온', '차분', '조용', '고요', '편안', '안정', '휴식', '명상'],
-                energetic: ['신나', '활기', '열정', '에너지', '역동', '적극', '도전', '활발'],
-                nostalgic: ['그리워', '추억', '옛날', '과거', '그때', '향수', '그립', '옛']
-            };
-            
-            let scores = {};
-            Object.keys(emotionKeywords).forEach(emotion => {
-                scores[emotion] = 0;
-                emotionKeywords[emotion].forEach(keyword => {
-                    if (text.includes(keyword)) {
-                        scores[emotion]++;
-                    }
-                });
-            });
-            
-            // 가장 높은 점수의 감정 반환
-            let maxEmotion = 'calm';
-            let maxScore = 0;
-            Object.keys(scores).forEach(emotion => {
-                if (scores[emotion] > maxScore) {
-                    maxScore = scores[emotion];
-                    maxEmotion = emotion;
-                }
-            });
-            
-            return maxScore > 0 ? maxEmotion : 'calm';
-        }
-
-        // 음악 추천
-        function recommendMusic(emotion, weather) {
-            let tracks = musicDatabase[emotion] || musicDatabase.calm;
-            
-            // 날씨에 따른 추가 필터링 (시뮬레이션)
-            if (weather === 'rainy' && emotion === 'happy') {
-                tracks = musicDatabase.calm; // 비 오는 날은 차분한 음악
-            } else if (weather === 'sunny' && emotion === 'sad') {
-                tracks = tracks.concat(musicDatabase.nostalgic); // 맑은 날 슬픔은 노스탤지어
-            }
-            
-            return tracks.slice(0, 3); // 상위 3곡만 반환
-        }
-
-        // 분석 및 추천 실행
-        async function analyzeAndRecommend() {
-            const text = document.getElementById('mainTextarea').value;
-            
-            if (text.length < 20) {
-                showToast("최소 20자 이상 작성해주세요");
-                return;
-            }
-            
-            showToast("일기를 분석하고 음악을 추천하는 중...");
-            
-            // 감정 분석
-            const emotion = analyzeEmotion(text);
-            appState.currentEmotion = emotion;
-            
-            // 감정 태그 표시
-            updateEmotionIndicator(emotion);
-            
-            // 음악 추천
-            const recommendedTracks = recommendMusic(emotion, appState.weather?.type);
-            appState.recommendedTracks = recommendedTracks;
-            
-            // UI 업데이트
-            setTimeout(() => {
-                showMusicRecommendation(emotion, recommendedTracks);
-                showToast("완료! 오늘의 감정에 맞는 음악을 찾았습니다 🎵");
-            }, 1500);
-        }
-
-        function updateEmotionIndicator(emotion) {
-            const indicator = document.getElementById('emotionIndicator');
-            const emotionLabels = {
-                happy: '기쁨',
-                sad: '슬픔',
-                calm: '평온',
-                energetic: '활기',
-                nostalgic: '그리움'
-            };
-            
-            const emotionEmojis = {
-                happy: '😊',
-                sad: '😢',
-                calm: '😌',
-                energetic: '⚡',
-                nostalgic: '🥀'
-            };
-            
-            indicator.innerHTML = `
-                <span class="emotion-tag">
-                    ${emotionEmojis[emotion]} ${emotionLabels[emotion]}
-                </span>
-                <span class="emotion-tag">
-                    ${appState.weather?.description} 날씨
-                </span>
-            `;
-        }
-
-        function showMusicRecommendation(emotion, tracks) {
-            const musicRec = document.getElementById('musicRecommendation');
-            const musicSubtitle = document.getElementById('musicSubtitle');
-            const musicTracks = document.getElementById('musicTracks');
-            
-            const emotionLabels = {
-                happy: '기쁨',
-                sad: '슬픔', 
-                calm: '평온',
-                energetic: '활기',
-                nostalgic: '그리움'
-            };
-            
-            musicSubtitle.textContent = `${emotionLabels[emotion]}과 ${appState.weather?.description} 날씨에 어울리는 음악`;
-            
-            musicTracks.innerHTML = tracks.map(track => `
-                <div class="music-track" onclick="playTrack('${track.name}', '${track.artist}')">
-                    <div class="track-artwork">${track.emoji}</div>
-                    <div class="track-info">
-                        <div class="track-name">${track.name}</div>
-                        <div class="track-artist">${track.artist}</div>
-                    </div>
-                    <button class="play-btn">▶</button>
-                </div>
-            `).join('');
-            
-            musicRec.classList.add('show');
-        }
-
-        function playTrack(name, artist) {
-            const nowPlaying = document.getElementById('nowPlaying');
-            const nowPlayingInfo = document.getElementById('nowPlayingInfo');
-            
-            appState.currentlyPlaying = { name, artist };
-            nowPlayingInfo.textContent = `${name} - ${artist}`;
-            nowPlaying.classList.add('show');
-            
-            showToast(`🎵 "${name}" 재생 중...`);
-            
-            // 실제로는 Spotify Web Playback SDK 등을 사용하여 음악 재생
-            simulateAudioPlayback();
-        }
-
-        function simulateAudioPlayback() {
-            // 음악 재생 시뮬레이션 (3분 후 자동 종료)
-            setTimeout(() => {
-                const nowPlaying = document.getElementById('nowPlaying');
-                nowPlaying.classList.remove('show');
-                appState.currentlyPlaying = null;
-                showToast("음악 재생이 완료되었습니다");
-            }, 10000); // 10초 후 종료 (데모용)
-        }
-
-        function shareEntry() {
-            const text = document.getElementById('mainTextarea').value;
-            if (text.length < 10) {
-                showToast("공유할 내용을 먼저 작성해주세요");
-                return;
-            }
-            
-            const shareData = {
-                emotion: appState.currentEmotion,
-                weather: appState.weather?.description,
-                location: appState.location?.city,
-                music: appState.currentlyPlaying?.name
-            };
-            
-            showToast(`📤 ${shareData.weather} 날씨, ${shareData.emotion} 감정의 일기가 공유되었습니다`);
-        }
-
-        // 토스트 메시지
-        function showToast(message) {
-            // 기존 토스트 제거
-            const existingToast = document.querySelector('.toast');
-            if (existingToast) {
-                existingToast.remove();
-            }
-            
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = message;
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'toastSlide 0.3s ease-out reverse';
-                setTimeout(() => {
-                    if (toast.parentNode) {
-                        document.body.removeChild(toast);
-                    }
-                }, 300);
-            }, 3000);
-        }
-
-        // 키보드 단축키
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'Enter') {
-                e.preventDefault();
-                analyzeAndRecommend();
-            }
-            
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-                shareEntry();
-            }
-        });
-
-        // 실시간 타이핑 감지
-        document.getElementById('mainTextarea').addEventListener('input', function() {
-            const length = this.value.length;
-            
-            // 길이에 따른 시각적 피드백
-            if (length > 100) {
-                this.style.borderColor = '#ff6b35';
-                this.style.background = 'rgba(255,107,53,0.1)';
-            } else {
-                this.style.borderColor = 'rgba(255,255,255,0.2)';
-                this.style.background = 'rgba(255,255,255,0.05)';
-            }
-        });
-
-        // 날씨 기반 테마 전환 (데모용 - 클릭으로 날씨 변경)
-        document.getElementById('weatherIcon').addEventListener('click', function() {
-            const weatherTypes = ['sunny', 'rainy', 'cloudy', 'snowy'];
-            const currentIndex = weatherTypes.indexOf(appState.weather?.type || 'sunny');
-            const nextIndex = (currentIndex + 1) % weatherTypes.length;
-            const nextWeather = weatherTypes[nextIndex];
-            
-            appState.weather = {
-                type: nextWeather,
-                temperature: Math.floor(Math.random() * 30) + 5,
-                description: getWeatherDescription(nextWeather)
-            };
-            
-            updateWeatherUI();
-            showToast(`날씨가 ${appState.weather.description}로 변경되었습니다`);
-        });
-
-        // 감정별 배경음악 (실제로는 Web Audio API 사용)
-        const ambientSounds = {
-            rainy: 'rain-sounds.mp3',
-            sunny: 'birds-chirping.mp3', 
-            snowy: 'wind-sounds.mp3',
-            cloudy: 'ambient-nature.mp3'
-        };
-
-        function playAmbientSound(weatherType) {
-            // 실제로는 Web Audio API로 배경음 재생
-            console.log(`Playing ambient sound for ${weatherType}`);
-        }
-
-        // 위치 기반 추가 기능 (데모용)
-        function updateContextualPrompts() {
-            const prompts = {
-                home: "집에서 편안하게, 오늘 하루는 어땠나요?",
-                cafe: "카페의 따뜻한 분위기 속에서 마음을 정리해보세요",
-                office: "바쁜 하루 중 잠깐의 여유, 지금 기분은 어떤가요?",
-                park: "자연 속에서 깊게 숨을 쉬며 마음을 들여다보세요"
-            };
-            
-            // 실제로는 GPS나 Wi-Fi 기반으로 위치 감지
-        }
-
-        // 스마트 음악 큐레이션 (실제로는 AI 기반)
-        function generateSmartPlaylist(emotion, weather, timeOfDay, location) {
-            const context = {
-                emotion,
-                weather,
-                timeOfDay: new Date().getHours(),
-                location: location || 'home'
-            };
-            
-            // 복합적 요소를 고려한 음악 추천
-            let playlist = [];
-            
-            if (context.weather === 'rainy' && context.emotion === 'nostalgic') {
-                playlist = [
-                    { name: "The Night We Met", artist: "Lord Huron", emoji: "🌧️" },
-                    { name: "Mad World", artist: "Gary Jules", emoji: "🌫️" },
-                    { name: "Hurt", artist: "Johnny Cash", emoji: "💔" }
-                ];
-            } else if (context.weather === 'sunny' && context.emotion === 'happy') {
-                playlist = [
-                    { name: "Here Comes the Sun", artist: "The Beatles", emoji: "☀️" },
-                    { name: "Good as Hell", artist: "Lizzo", emoji: "💪" },
-                    { name: "Walking on Sunshine", artist: "Katrina & The Waves", emoji: "🌈" }
-                ];
-            }
-            
-            return playlist.length > 0 ? playlist : musicDatabase[emotion];
-        }
-
-        // 일기 저장 및 분석 히스토리
-        let entryHistory = [];
-
-        function saveEntryToHistory(text, emotion, weather, music) {
-            const entry = {
-                id: Date.now(),
-                text: text,
-                emotion: emotion,
-                weather: weather,
-                music: music,
-                timestamp: new Date().toISOString(),
-                location: appState.location
-            };
-            
-            entryHistory.push(entry);
-            
-            // 로컬 스토리지에 저장 (실제로는 서버에 저장)
-            try {
-                localStorage.setItem('sunset_entries', JSON.stringify(entryHistory));
-            } catch (e) {
-                console.log('History save failed');
-            }
-        }
-
-        function loadEntryHistory() {
-            try {
-                const saved = localStorage.getItem('sunset_entries');
-                if (saved) {
-                    entryHistory = JSON.parse(saved);
-                }
-            } catch (e) {
-                console.log('History load failed');
-            }
-        }
-
-        // 감정 패턴 분석
-        function analyzeEmotionPatterns() {
-            if (entryHistory.length < 5) return null;
-            
-            const emotionCounts = {};
-            const weatherEmotions = {};
-            
-            entryHistory.forEach(entry => {
-                emotionCounts[entry.emotion] = (emotionCounts[entry.emotion] || 0) + 1;
-                
-                const key = `${entry.weather.type}_${entry.emotion}`;
-                weatherEmotions[key] = (weatherEmotions[key] || 0) + 1;
-            });
-            
-            return {
-                mostCommonEmotion: Object.keys(emotionCounts).reduce((a, b) => 
-                    emotionCounts[a] > emotionCounts[b] ? a : b),
-                emotionCounts,
-                weatherEmotions
-            };
-        }
-
-        // 초기 히스토리 로드
-        loadEntryHistory();
-
-        // 페이지 언로드 시 현재 작업 저장
-        window.addEventListener('beforeunload', function() {
-            const currentText = document.getElementById('mainTextarea').value;
-            if (currentText.length > 20) {
-                saveEntryToHistory(
-                    currentText, 
-                    appState.currentEmotion || 'unknown',
-                    appState.weather,
-                    appState.currentlyPlaying
-                );
-            }
-        });
-
-        // 접근성 개선
-        document.addEventListener('keydown', function(e) {
-            // Tab 키로 네비게이션 개선
-            if (e.key === 'Tab') {
-                // 자동 포커스 관리
-            }
-            
-            // ESC 키로 음악 추천 닫기
-            if (e.key === 'Escape') {
-                const musicRec = document.getElementById('musicRecommendation');
-                if (musicRec.classList.contains('show')) {
-                    musicRec.classList.remove('show');
-                }
-            }
-        });
-
-        // 성능 최적화 - 날씨 애니메이션 제한
-        let animationActive = true;
-        
-        document.addEventListener('visibilitychange', function() {
-            if (document.hidden) {
-                animationActive = false;
-                // 애니메이션 일시정지
-            } else {
-                animationActive = true;
-                // 애니메이션 재개
-            }
-        });
-    </script>
-</body>
-</html>
+            create
