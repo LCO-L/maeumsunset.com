@@ -526,24 +526,25 @@ document.addEventListener('DOMContentLoaded', () => {
     probeBtn.addEventListener('click', ()=>doProbe());
   }
 
-  // Global delegation (safety)
-  document.addEventListener('click', (e)=>{
-    const el = e.target.closest('button, .btn');
-    if(!el) return;
-    if(el.id==='saveBtn'){ e.preventDefault(); saveBtn && saveBtn.click(); }
-    else if(el.id==='shareBtn'){ e.preventDefault(); shareBtn && shareBtn.click(); }
-    else if(el.id==='nextQ'){ e.preventDefault(); nextQ && nextQ.click(); }
-    else if(el.id==='probeBtn'){ e.preventDefault(); probeBtn && probeBtn.click(); }
-    else if(el.id==='installBtn'){ e.preventDefault(); installBtn && installBtn.click(); }
-    else if(el.id==='shareInBtn'){ e.preventDefault(); shareInBtn && shareInBtn.click(); }
-    else if(el.id==='dockOk'){ e.preventDefault(); dockOk && dockOk.click(); }
-  });
-  document.addEventListener('touchend', (e)=>{
-    const el = e.target.closest('button, .btn');
-    if(!el) return;
-    e.preventDefault();
-    el.dispatchEvent(new Event('click', {bubbles:true}));
-  });
+  // ✅ 안전한 전역 위임 (재호출/루프 없음)
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('button, .btn');
+  if (!el) return;
+
+  // 개별 리스너로 이미 처리하는 버튼들은 그냥 통과
+  const managed = new Set(['saveBtn','shareBtn','nextQ','probeBtn','installBtn','shareInBtn','dockOk']);
+  if (managed.has(el.id)) return;
+
+  // 별도 위임이 필요한 커스텀 버튼만 여기서 처리 (※ 절대 el.click() 다시 호출하지 말기)
+});
+
+// 터치에서 click 합성은 보통 불필요. 정말 필요할 때만 켜세요.
+// document.addEventListener('touchend', (e) => {
+//   const el = e.target.closest('button, .btn');
+//   if (!el) return;
+//   // e.preventDefault(); // 중복 클릭 위험
+//   // el.dispatchEvent(new MouseEvent('click', {bubbles:false}));
+// });
 
   // Init flows
   setTimeout(()=> loadStep(0), 0);
