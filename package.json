@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
+    // 기본 빌드 (out/ 생성)
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "build:docs": "next build && rm -rf docs && mv out docs && touch docs/.nojekyll",
-    "build:docs:domain": "next build && rm -rf docs && mv out docs && mkdir -p docs && echo $DOMAIN > docs/CNAME && touch docs/.nojekyll"
-  },
+    // out/을 docs/로 정적 export
+    "export": "next export -o docs",
+    // 한 번에 끝내기: build + export + CNAME + .nojekyll
+    "build:docs": "npm run build && npm run export && echo maeumsunset.com > docs/CNAME && touch docs/.nojekyll"
+  }
+}
+,
   "dependencies": {
     "idb": "^8.0.3",
     "next": "15.4.6",
