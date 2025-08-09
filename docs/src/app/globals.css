@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+  --sunset-from: #ffbb88;
+  --sunset-to:   #ff89b0;
+  --glass-bg: rgba(255,255,255,0.08);
+  --glass-brd: rgba(255,255,255,0.18);
+  --text-dim: rgba(255,255,255,0.7);
+  
+  /* 새로 추가된 감정 색상들 */
+  --emotion-calm: #9CC9FF;
+  --emotion-joy: #FFD97D;
+  --emotion-excited: #FF9ED1;
+  --emotion-focused: #A8DADC;
+  --emotion-creative: #F1FAEE;
+  --emotion-grateful: #B4E7CE;
+}
+
+html, body { height: 100%; }
