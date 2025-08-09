@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "export": "next export -o docs",
-    "build:docs": "npm run build && npm run export && echo maeumsunset.com > docs/CNAME && touch docs/.nojekyll"
+    "build:docs": "next build && next export -o docs && cp docs/index.html docs/404.html && touch docs/.nojekyll && echo maeumsunset.com > docs/CNAME"
   },
   "dependencies": {
     "idb": "^8.0.3",
