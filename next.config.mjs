@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  images: { unoptimized: true },
-  basePath: '',
-  trailingSlash: true
+  distDir: 'docs',
 };
+
 export default nextConfig;
+
