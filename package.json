@@ -4,15 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    // 기본 빌드 (out/ 생성)
     "build": "next build",
-    // out/을 docs/로 정적 export
     "export": "next export -o docs",
-    // 한 번에 끝내기: build + export + CNAME + .nojekyll
     "build:docs": "npm run build && npm run export && echo maeumsunset.com > docs/CNAME && touch docs/.nojekyll"
-  }
-}
-,
+  },
   "dependencies": {
     "idb": "^8.0.3",
     "next": "15.4.6",
@@ -34,3 +29,4 @@
     "typescript": "^5"
   }
 }
+
