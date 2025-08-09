@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>SunSet — Choose Mode</title>
+  <style>
+:root{
+  --paper:#FFFDF7; --edge:#FAF7EE; --ink:#2a2a2a;
+  --btnA_from:#e9f3ff; --btnA_to:#f6fbff;
+  --btnB_from:#fff0e6; --btnB_to:#fff7f0;
+  --border:#efe8da;
+}
+*{box-sizing:border-box} html,body{height:100%}
+body{
+  margin:0; color:var(--ink);
+  font-family: ui-rounded, ui-sans-serif, -apple-system, 'SF Pro Rounded', 'Apple SD Gothic Neo', Pretendard, Segoe UI, Roboto, Helvetica, Arial;
+  background: linear-gradient(180deg, #fdfbf6, #fbf8f0);
+  display:grid; place-items:center;
+}
+.wrap{width:min(560px,92vw); display:grid; gap:16px; text-align:center}
+h1{margin:0; font-size:18px; font-weight:900}
+.cta{display:grid; gap:12px}
+.btn{
+  display:block; width:100%; padding:18px; border-radius:16px; cursor:pointer;
+  border:1px solid var(--border);
+  font-weight:900;
+  box-shadow:0 14px 28px rgba(40,55,100,.08);
+}
+.btn.daylight{background:linear-gradient(180deg, var(--btnA_from), var(--btnA_to))}
+.btn.sunset{background:linear-gradient(180deg, var(--btnB_from), var(--btnB_to))}
+.small{font-size:12px; opacity:.7}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>무엇부터 시작할까요?</h1>
+    <div class="cta">
+      <a class="btn daylight" href="start_daylight.html">🌤️ Daylight</a>
+      <a class="btn sunset" href="start_sunset.html">🌙 SunSet</a>
+    </div>
+    <div class="small">한 화면에 질문 1개 · 모바일 우선</div>
+  </div>
+</body>
+</html>
