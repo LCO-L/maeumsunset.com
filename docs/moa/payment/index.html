@@ -1,105 +1,448 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>MAEUM 요금제</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAEUM AI - 구독 플랜</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background: #f9fafc;
-      color: #333;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #f8f9fa;
+      min-height: 100vh;
+      color: #1a1a2e;
     }
-    h1 {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    table {
-      width: 90%;
+    
+    .container {
+      max-width: 1200px;
       margin: 0 auto;
-      border-collapse: collapse;
-      background: #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      padding: 20px;
     }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 16px;
+    
+    header {
       text-align: center;
-      vertical-align: middle;
+      padding: 60px 20px 40px;
+      color: #1a1a2e;
     }
-    th {
-      background: #f2f2f2;
-    }
-    tr:hover {
-      background: #f5f5f5;
-    }
-    .btn {
+    
+    .logo {
       display: inline-block;
-      padding: 10px 18px;
-      margin: 6px;
-      border-radius: 6px;
-      text-decoration: none;
-      color: #fff;
-      font-weight: bold;
-    }
-    .stripe {
-      background: #635bff;
-    }
-    .toss {
-      background: #0064ff;
-    }
-    .note {
-      margin-top: 20px;
-      text-align: center;
+      background: #1a1a2e;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 50px;
+      margin-bottom: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
       font-size: 0.9em;
+    }
+    
+    h1 {
+      font-size: 3em;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    
+    .subtitle {
+      font-size: 1.3em;
+      opacity: 0.8;
+      font-weight: 300;
+      margin-bottom: 10px;
+      color: #4a5568;
+    }
+    
+    .description {
+      font-size: 1em;
+      opacity: 0.7;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+      color: #6b7280;
+    }
+    
+    .plans-wrapper {
+      background: white;
+      border-radius: 24px;
+      padding: 40px 20px;
+      margin: 40px auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    }
+    
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .plan {
+      background: #fafafa;
+      border-radius: 16px;
+      padding: 32px;
+      position: relative;
+      transition: all 0.3s ease;
+      border: 2px solid #e5e7eb;
+    }
+    
+    .plan:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+      border-color: #1a1a2e;
+    }
+    
+    .plan.popular {
+      border-color: #1a1a2e;
+      background: white;
+      transform: scale(1.05);
+    }
+    
+    .plan.popular::before {
+      content: '인기';
+      position: absolute;
+      top: -12px;
+      right: 20px;
+      background: #1a1a2e;
+      color: white;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+    
+    .plan-name {
+      font-size: 1.8em;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #1a1a2e;
+    }
+    
+    .plan-description {
       color: #666;
+      font-size: 0.95em;
+      margin-bottom: 20px;
+      min-height: 40px;
+    }
+    
+    .price-wrapper {
+      margin: 24px 0;
+    }
+    
+    .price {
+      font-size: 2.5em;
+      font-weight: 700;
+      color: #1a1a2e;
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .price .currency {
+      font-size: 0.5em;
+      opacity: 0.7;
+    }
+    
+    .price .period {
+      font-size: 0.4em;
+      font-weight: 400;
+      opacity: 0.6;
+    }
+    
+    .features {
+      margin: 30px 0;
+      text-align: left;
+    }
+    
+    .feature {
+      display: flex;
+      align-items: center;
+      padding: 10px 0;
+      color: #4a5568;
+      font-size: 0.95em;
+    }
+    
+    .feature::before {
+      content: '✓';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background: #1a1a2e;
+      color: white;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 20px;
+      margin-right: 12px;
+      font-size: 0.8em;
+      flex-shrink: 0;
+    }
+    
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
+      text-align: center;
+      transition: all 0.3s ease;
+      font-size: 1em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-primary {
+      background: #1a1a2e;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #2a2a3e;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(26, 26, 46, 0.2);
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: #1a1a2e;
+      border: 2px solid #1a1a2e;
+    }
+    
+    .btn-secondary:hover {
+      background: #1a1a2e;
+      color: white;
+    }
+    
+    .btn-contact {
+      background: #2d3748;
+      color: white;
+    }
+    
+    .btn-contact:hover {
+      background: #1a202c;
+    }
+    
+    .payment-methods {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 1px solid #e5e5e5;
+    }
+    
+    .payment-method {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #666;
+      font-size: 0.9em;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: #f0f0f0;
+      border-radius: 20px;
+      font-size: 0.75em;
+      font-weight: 600;
+      color: #666;
+      margin-top: 8px;
+    }
+    
+    .enterprise-note {
+      background: linear-gradient(135deg, #f7f7f7, #e8e8e8);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 20px;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6b7280;
+    }
+    
+    .security-badges {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85em;
+      opacity: 0.9;
+    }
+    
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2em;
+      }
+      
+      .plans {
+        grid-template-columns: 1fr;
+      }
+      
+      .plan.popular {
+        transform: scale(1);
+      }
+      
+      .payment-methods {
+        flex-direction: column;
+        gap: 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>MAEUM_BOT 요금제</h1>
-  <table>
-    <tr>
-      <th>플랜</th>
-      <th>가격</th>
-      <th>기능</th>
-      <th>구독하기</th>
-    </tr>
-    <tr>
-      <td>Free</td>
-      <td>₩0</td>
-      <td><br>일 15회 메시지</td>
-      <td>—</td>
-    </tr>
-    <tr>
-      <td>Pro</td>
-      <td>₩4,900 / 월</td>
-      <td><br>월 2,700회 메시지</td>
-      <td>
-        <a href="https://buy.stripe.com/test_dummy_pro" class="btn stripe">Stripe 결제</a><br>
-        <a href="https://pay.toss.im/pay/test_dummy_pro" class="btn toss">Toss 결제</a>
-      </td>
-    </tr>
-    <tr>
-      <td>Pro+</td>
-      <td>₩8,900 / 월</td>
-      <td><br>월 9,000회 메시지</td>
-      <td>
-        <a href="https://buy.stripe.com/test_dummy_proplus" class="btn stripe">Stripe 결제</a><br>
-        <a href="https://pay.toss.im/pay/test_dummy_proplus" class="btn toss">Toss 결제</a>
-      </td>
-    </tr>
-    <tr>
-      <td>Enterprise</td>
-      <td>₩89,000 / 월 ~</td>
-      <td>모든 모델, API 연동, SLA 지원</td>
-      <td>
-        <a href="mailto:contact@maeum.io" class="btn stripe">문의하기</a>
-      </td>
-    </tr>
-  </table>
-  <p class="note"><br>
-  ※ 결제 버튼은 테스트용이며, 실제 결제 시 Stripe Checkout / Toss API 링크로 교체하세요.</p>
+  <div class="container">
+    <header>
+      <div class="logo">MAEUM AI SYSTEM</div>
+      <h1>차세대 AI 구독 서비스</h1>
+      <p class="subtitle">4B 모델을 GPT-4급 성능으로</p>
+      <p class="description">MAEUM의 혁신적인 이중 레이어 랩핑 구조로 최고의 AI 성능을 경험하세요</p>
+    </header>
+    
+    <div class="plans-wrapper">
+      <div class="plans">
+        <div class="plan popular">
+          <div class="plan-name">Pro</div>
+          <div class="price-wrapper">
+            <div class="price">
+              <span class="currency">₩</span>4,900
+              <span class="period">/ 월</span>
+            </div>
+          </div>
+          <div class="features">
+            <div class="feature">모든 AI 모델 접근</div>
+            <div class="feature">무제한 요청</div>
+            <div class="feature">GPU 가속 (2-3초 응답)</div>
+            <div class="feature">우선 지원</div>
+            <div class="feature">고급 기능 접근</div>
+          </div>
+          <div class="buttons">
+            <a href="https://buy.stripe.com/test_pro" class="btn btn-primary">
+              <span>Stripe로 결제</span>
+            </a>
+            <a href="https://pay.toss.im/pay/test_pro" class="btn btn-secondary">
+              <span>Toss로 결제</span>
+            </a>
+          </div>
+          <div class="badge">가장 인기 있는 플랜</div>
+        </div>
+        
+        <div class="plan">
+          <div class="plan-name">Pro+</div>
+          <div class="price-wrapper">
+            <div class="price">
+              <span class="currency">₩</span>8,900
+              <span class="period">/ 월</span>
+            </div>
+          </div>
+          <div class="features">
+            <div class="feature">Pro의 모든 기능</div>
+            <div class="feature">팀 협업 도구</div>
+            <div class="feature">API 접근 (5,000회/월)</div>
+            <div class="feature">커스텀 모델 튜닝</div>
+            <div class="feature">전담 지원</div>
+            <div class="feature">데이터 우선 처리</div>
+          </div>
+          <div class="buttons">
+            <a href="https://buy.stripe.com/test_proplus" class="btn btn-primary">
+              <span>Stripe로 결제</span>
+            </a>
+            <a href="https://pay.toss.im/pay/test_proplus" class="btn btn-secondary">
+              <span>Toss로 결제</span>
+            </a>
+          </div>
+        </div>
+        
+        <div class="plan">
+          <div class="plan-name">Enterprise</div>
+          <div class="price-wrapper">
+            <div class="price">
+              <span class="currency">₩</span>89,000
+              <span class="period">/ 월~</span>
+            </div>
+          </div>
+          <div class="features">
+            <div class="feature">무제한 API 호출</div>
+            <div class="feature">전용 인프라 구축</div>
+            <div class="feature">99.9% SLA 보장</div>
+            <div class="feature">온프레미스 배포 가능</div>
+            <div class="feature">24/7 전담 지원팀</div>
+            <div class="feature">맞춤형 모델 개발</div>
+          </div>
+          <div class="buttons">
+            <a href="mailto:contact@maeum.io" class="btn btn-contact">
+              <span>상담 요청하기</span>
+            </a>
+          </div>
+          <div class="enterprise-note">
+            귀사의 요구사항에 맞는 맞춤형 견적을 제공해드립니다
+          </div>
+        </div>
+      </div>
+      
+      <div class="payment-methods">
+        <div class="payment-method">
+          <span>💳</span>
+          <span>모든 주요 카드 지원</span>
+        </div>
+        <div class="payment-method">
+          <span>🔒</span>
+          <span>256-bit SSL 암호화</span>
+        </div>
+        <div class="payment-method">
+          <span>🌏</span>
+          <span>글로벌 결제 가능</span>
+        </div>
+        <div class="payment-method">
+          <span>↩️</span>
+          <span>7일 환불 보장</span>
+        </div>
+      </div>
+    </div>
+    
+    <footer>
+      <p>© 2025 MAEUM AI System. All rights reserved.</p>
+      <p style="margin-top: 10px; font-size: 0.9em;">Created by 프린켑스 | AI 혁명의 선구자</p>
+      <div class="security-badges">
+        <div class="security-badge">
+          <span>✓</span>
+          <span>PCI DSS 준수</span>
+        </div>
+        <div class="security-badge">
+          <span>✓</span>
+          <span>ISO 27001 인증</span>
+        </div>
+        <div class="security-badge">
+          <span>✓</span>
+          <span>GDPR 준수</span>
+        </div>
+      </div>
+    </footer>
+  </div>
 </body>
 </html>
