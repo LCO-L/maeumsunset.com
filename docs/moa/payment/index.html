@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MONET AI - 구독 플랜</title>
+  <title>MONET AI - Subscription Plans</title>
   <style>
     * {
       margin: 0;
@@ -16,6 +16,44 @@
       background: #f8f9fa;
       min-height: 100vh;
       color: #1a1a2e;
+    }
+    
+    .language-switcher {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      background: white;
+      border-radius: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+      border: 2px solid #1a1a2e;
+    }
+    
+    .lang-btn {
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      font-size: 0.95em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #1a1a2e;
+      position: relative;
+    }
+    
+    .lang-btn:hover {
+      background: #f0f0f0;
+    }
+    
+    .lang-btn.active {
+      background: #1a1a2e;
+      color: white;
+    }
+    
+    .lang-btn:first-child {
+      border-right: 1px solid #e5e7eb;
     }
     
     .container {
@@ -161,18 +199,15 @@
       font-weight: 600;
     }
     
+    .plan.popular[data-lang="en"]::before {
+      content: 'Popular';
+    }
+    
     .plan-name {
       font-size: 1.8em;
       font-weight: 700;
       margin-bottom: 8px;
       color: #1a1a2e;
-    }
-    
-    .plan-description {
-      color: #666;
-      font-size: 0.95em;
-      margin-bottom: 20px;
-      min-height: 40px;
     }
     
     .price-wrapper {
@@ -274,15 +309,6 @@
       color: white;
     }
     
-    .btn-contact {
-      background: #2d3748;
-      color: white;
-    }
-    
-    .btn-contact:hover {
-      background: #1a202c;
-    }
-    
     .payment-methods {
       display: flex;
       justify-content: center;
@@ -311,39 +337,26 @@
       margin-top: 8px;
     }
     
-    .enterprise-note {
-      background: linear-gradient(135deg, #f7f7f7, #e8e8e8);
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      color: #666;
-      font-size: 0.9em;
-      margin-top: 20px;
-    }
-    
     footer {
       text-align: center;
       padding: 40px 20px;
       color: #6b7280;
     }
     
-    .security-badges {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin-top: 20px;
-      flex-wrap: wrap;
+    .lang-content {
+      display: none;
     }
     
-    .security-badge {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85em;
-      opacity: 0.9;
+    .lang-content.active {
+      display: block;
     }
     
     @media (max-width: 768px) {
+      .language-switcher {
+        top: 10px;
+        right: 10px;
+      }
+      
       h1 {
         font-size: 2em;
       }
@@ -368,146 +381,288 @@
   </style>
 </head>
 <body>
+  <div class="language-switcher">
+    <button class="lang-btn active" onclick="switchLanguage('ko')">한국어</button>
+    <button class="lang-btn" onclick="switchLanguage('en')">English</button>
+  </div>
+  
   <div class="container">
-    <header>
-      <div class="logo">MONET AI SYSTEM</div>
-      <h1>차세대 AI 구독 서비스</h1>
-      <p class="subtitle">디스코드 상에서 저렴한 가격에 최고의 AI 모델들을 만나보세요</p>
-      <p class="description">MONET의 혁신적인 기술로 가격을 절약하고 최고의 품질을 제공합니다</p>
-    </header>
-    
-    <div class="plans-wrapper">
-      <div class="plans">
-        <div class="plan free">
-          <div class="plan-name">Free</div>
-          <div class="price-wrapper">
-            <div class="price">
-              <span class="currency">₩</span>0
-              <span class="period">/ 월</span>
+    <!-- Korean Content -->
+    <div class="lang-content ko active">
+      <header>
+        <div class="logo">MONET AI SYSTEM</div>
+        <h1>차세대 AI 구독 서비스</h1>
+        <p class="subtitle">디스코드 상에서 저렴한 가격에 최고의 AI 모델들을 만나보세요</p>
+        <p class="description">MONET의 혁신적인 기술로 가격을 절약하고 최고의 품질을 제공합니다</p>
+      </header>
+      
+      <div class="plans-wrapper">
+        <div class="plans">
+          <div class="plan free">
+            <div class="plan-name">Free</div>
+            <div class="price-wrapper">
+              <div class="price">
+                <span class="currency">₩</span>0
+                <span class="period">/ 월</span>
+              </div>
+            </div>
+            <div class="features">
+              <div class="feature">일일 5회 호출</div>
+              <div class="feature">기본 대화 기능</div>
+              <div class="feature">무제한 컨텍스트 메모리</div>
+            </div>
+            <div class="buttons">
+              <a href="#" class="btn btn-secondary">무료로 시작하기</a>
             </div>
           </div>
-          <div class="features">
-            <div class="feature">일일 5회 호출</div>
-            <div class="feature">기본 대화 기능</div>
-            <div class="feature">무제한 컨텍스트 메모리</div>
+          
+          <div class="plan">
+            <div class="plan-name">Pro</div>
+            <div class="price-wrapper">
+              <div class="price">
+                <span class="currency">₩</span>4,900
+                <span class="period">/ 월</span>
+              </div>
+            </div>
+            <div class="features">
+              <div class="feature">일일 50회 호출</div>
+              <div class="feature">고급 대화 기능</div>
+              <div class="feature">메모리 시스템</div>
+              <div class="feature">웹 검색 (준비중)</div>
+            </div>
+            <div class="buttons">
+              <a href="https://buy.paddle.com/test_pro" class="btn btn-primary">
+                <span>Paddle로 결제</span>
+              </a>
+              <a href="https://pay.toss.im/pay/test_pro" class="btn btn-secondary">
+                <span>Toss로 결제</span>
+              </a>
+            </div>
           </div>
-          <div class="buttons">
-            <a href="#" class="btn btn-secondary">무료로 시작하기</a>
+          
+          <div class="plan popular">
+            <div class="plan-name">Pro+</div>
+            <div class="price-wrapper">
+              <div class="price">
+                <span class="currency">₩</span>14,900
+                <span class="period">/ 월</span>
+              </div>
+            </div>
+            <div class="features">
+              <div class="feature">일일 300회 호출</div>
+              <div class="feature">GPT-5 포함 모든 AI 모델</div>
+              <div class="feature">AI 토론 (월 20회)</div>
+              <div class="feature">파일 분석 기능</div>
+            </div>
+            <div class="buttons">
+              <a href="https://buy.paddle.com/test_proplus" class="btn btn-primary">
+                <span>Paddle로 결제</span>
+              </a>
+              <a href="https://pay.toss.im/pay/test_proplus" class="btn btn-secondary">
+                <span>Toss로 결제</span>
+              </a>
+            </div>
+            <div class="badge">가장 인기 있는 플랜</div>
+          </div>
+          
+          <div class="plan">
+            <div class="plan-name">Enterprise</div>
+            <div class="price-wrapper">
+              <div class="price">
+                <span class="currency">₩</span>89,000
+                <span class="period">/ 월~</span>
+              </div>
+            </div>
+            <div class="features">
+              <div class="feature">일일 1000회 호출</div>
+              <div class="feature">모든 기능 포함</div>
+              <div class="feature">API 액세스</div>
+              <div class="feature">전담 지원</div>
+            </div>
+            <div class="buttons">
+              <a href="https://buy.paddle.com/test_enterprise" class="btn btn-primary">
+                <span>Paddle로 결제</span>
+              </a>
+              <a href="https://pay.toss.im/pay/test_enterprise" class="btn btn-secondary">
+                <span>Toss로 결제</span>
+              </a>
+            </div>
           </div>
         </div>
         
-        <div class="plan">
-          <div class="plan-name">Pro</div>
-          <div class="price-wrapper">
-            <div class="price">
-              <span class="currency">₩</span>4,900
-              <span class="period">/ 월</span>
-            </div>
+        <div class="payment-methods">
+          <div class="payment-method">
+            <span>💳</span>
+            <span>모든 주요 카드 지원</span>
           </div>
-          <div class="features">
-            <div class="feature">일일 50회 호출</div>
-            <div class="feature">고급 대화 기능</div>
-            <div class="feature">메모리 시스템</div>
-            <div class="feature">웹 검색 (준비중)</div>
+          <div class="payment-method">
+            <span>🔒</span>
+            <span>256-bit SSL 암호화</span>
           </div>
-          <div class="buttons">
-            <a href="https://buy.stripe.com/test_pro" class="btn btn-primary">
-              <span>Stripe로 결제</span>
-            </a>
-            <a href="https://pay.toss.im/pay/test_pro" class="btn btn-secondary">
-              <span>Toss로 결제</span>
-            </a>
+          <div class="payment-method">
+            <span>🌏</span>
+            <span>글로벌 결제 가능</span>
           </div>
-        </div>
-        
-        <div class="plan popular">
-          <div class="plan-name">Pro+</div>
-          <div class="price-wrapper">
-            <div class="price">
-              <span class="currency">₩</span>14,900
-              <span class="period">/ 월</span>
-            </div>
-          </div>
-          <div class="features">
-            <div class="feature">일일 300회 호출</div>
-            <div class="feature">GPT-5 포함 모든 AI 모델</div>
-            <div class="feature">AI 토론 (월 20회)</div>
-            <div class="feature">파일 분석 기능</div>
-          </div>
-          <div class="buttons">
-            <a href="https://buy.stripe.com/test_proplus" class="btn btn-primary">
-              <span>Stripe로 결제</span>
-            </a>
-            <a href="https://pay.toss.im/pay/test_proplus" class="btn btn-secondary">
-              <span>Toss로 결제</span>
-            </a>
-          </div>
-          <div class="badge">가장 인기 있는 플랜</div>
-        </div>
-        
-        <div class="plan">
-          <div class="plan-name">Enterprise</div>
-          <div class="price-wrapper">
-            <div class="price">
-              <span class="currency">₩</span>89,000
-              <span class="period">/ 월~</span>
-            </div>
-          </div>
-          <div class="features">
-            <div class="feature">일일 1000회 호출</div>
-            <div class="feature">모든 기능 포함</div>
-            <div class="feature">API 액세스</div>
-            <div class="feature">전담 지원</div>
-          </div>
-          <div class="buttons">
-            <a href="https://buy.stripe.com/test_enterprise" class="btn btn-primary">
-              <span>Stripe로 결제</span>
-            </a>
-            <a href="https://pay.toss.im/pay/test_enterprise" class="btn btn-secondary">
-              <span>Toss로 결제</span>
-            </a>
+          <div class="payment-method">
+            <span>↩️</span>
+            <span>7일 환불 보장</span>
           </div>
         </div>
       </div>
       
-      <div class="payment-methods">
-        <div class="payment-method">
-          <span>💳</span>
-          <span>모든 주요 카드 지원</span>
-        </div>
-        <div class="payment-method">
-          <span>🔒</span>
-          <span>256-bit SSL 암호화</span>
-        </div>
-        <div class="payment-method">
-          <span>🌏</span>
-          <span>글로벌 결제 가능</span>
-        </div>
-        <div class="payment-method">
-          <span>↩️</span>
-          <span>7일 환불 보장</span>
-        </div>
-      </div>
+      <footer>
+        <p>© 2025 마음모아. All rights reserved.</p>
+        <p style="margin-top: 10px; font-size: 0.9em;">Created by 마음모아</p>
+      </footer>
     </div>
     
-    <footer>
-      <p>© 2025 마음모아. All rights reserved.</p>
-      <p style="margin-top: 10px; font-size: 0.9em;">Created by 마음모아</p>
-      <div class="security-badges">
-        <div class="security-badge">
-          <span></span>
-          <span></span>
+    <!-- English Content -->
+    <div class="lang-content en">
+      <header>
+        <div class="logo">MONET AI SYSTEM</div>
+        <h1>Next-Generation AI Subscription Service</h1>
+        <p class="subtitle">Experience the best AI models at affordable prices on Discord</p>
+        <p class="description">Save costs and get premium quality with MONET's innovative technology</p>
+      </header>
+      
+      <div class="plans-wrapper">
+        <div class="plans">
+          <div class="plan free">
+            <div class="plan-name">Free</div>
+            <div class="price-wrapper">
+              <div class="price">
+                <span class="currency">$</span>0
+                <span class="period">/ month</span>
+              </div>
+            </div>
+            <div class="features">
+              <div class="feature">5 calls per day</div>
+              <div class="feature">Basic conversation features</div>
+              <div class="feature">Unlimited context memory</div>
+            </div>
+            <div class="buttons">
+              <a href="#" class="btn btn-secondary">Get Started Free</a>
+            </div>
+          </div>
+          
+          <div class="plan">
+            <div class="plan-name">Pro</div>
+            <div class="price-wrapper">
+              <div class="price">
+                <span class="currency">$</span>3.99
+                <span class="period">/ month</span>
+              </div>
+            </div>
+            <div class="features">
+              <div class="feature">50 calls per day</div>
+              <div class="feature">Advanced conversation features</div>
+              <div class="feature">Memory system</div>
+              <div class="feature">Web search (Coming soon)</div>
+            </div>
+            <div class="buttons">
+              <a href="https://buy.paddle.com/test_pro" class="btn btn-primary">
+                <span>Pay with Paddle</span>
+              </a>
+              <a href="https://pay.toss.im/pay/test_pro" class="btn btn-secondary">
+                <span>Pay with Toss</span>
+              </a>
+            </div>
+          </div>
+          
+          <div class="plan popular" data-lang="en">
+            <div class="plan-name">Pro+</div>
+            <div class="price-wrapper">
+              <div class="price">
+                <span class="currency">$</span>10.99
+                <span class="period">/ month</span>
+              </div>
+            </div>
+            <div class="features">
+              <div class="feature">300 calls per day</div>
+              <div class="feature">All AI models including GPT-5</div>
+              <div class="feature">AI debates (20 per month)</div>
+              <div class="feature">File analysis</div>
+            </div>
+            <div class="buttons">
+              <a href="https://buy.paddle.com/test_proplus" class="btn btn-primary">
+                <span>Pay with Paddle</span>
+              </a>
+              <a href="https://pay.toss.im/pay/test_proplus" class="btn btn-secondary">
+                <span>Pay with Toss</span>
+              </a>
+            </div>
+            <div class="badge">Most Popular Plan</div>
+          </div>
+          
+          <div class="plan">
+            <div class="plan-name">Enterprise</div>
+            <div class="price-wrapper">
+              <div class="price">
+                <span class="currency">$</span>65
+                <span class="period">/ month+</span>
+              </div>
+            </div>
+            <div class="features">
+              <div class="feature">1000 calls per day</div>
+              <div class="feature">All features included</div>
+              <div class="feature">API access</div>
+              <div class="feature">Dedicated support</div>
+            </div>
+            <div class="buttons">
+              <a href="https://buy.paddle.com/test_enterprise" class="btn btn-primary">
+                <span>Pay with Paddle</span>
+              </a>
+              <a href="https://pay.toss.im/pay/test_enterprise" class="btn btn-secondary">
+                <span>Pay with Toss</span>
+              </a>
+            </div>
+          </div>
         </div>
-        <div class="security-badge">
-          <span></span>
-          <span></span>
-        </div>
-        <div class="security-badge">
-          <span></span>
-          <span></span>
+        
+        <div class="payment-methods">
+          <div class="payment-method">
+            <span>💳</span>
+            <span>All major cards accepted</span>
+          </div>
+          <div class="payment-method">
+            <span>🔒</span>
+            <span>256-bit SSL encryption</span>
+          </div>
+          <div class="payment-method">
+            <span>🌏</span>
+            <span>Global payments</span>
+          </div>
+          <div class="payment-method">
+            <span>↩️</span>
+            <span>7-day money back guarantee</span>
+          </div>
         </div>
       </div>
-    </footer>
+      
+      <footer>
+        <p>© 2025 마음모아. All rights reserved.</p>
+        <p style="margin-top: 10px; font-size: 0.9em;">Created by 마음모아</p>
+      </footer>
+    </div>
   </div>
+  
+  <script>
+    function switchLanguage(lang) {
+      // Update button states
+      const buttons = document.querySelectorAll('.lang-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      // Show/hide content
+      const contents = document.querySelectorAll('.lang-content');
+      contents.forEach(content => {
+        content.classList.remove('active');
+      });
+      document.querySelector(`.lang-content.${lang}`).classList.add('active');
+      
+      // Update HTML lang attribute
+      document.documentElement.lang = lang;
+    }
+  </script>
 </body>
 </html>
