@@ -1,1 +1,105 @@
 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>MAEUM 요금제</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f9fafc;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    table {
+      width: 90%;
+      margin: 0 auto;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 16px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    tr:hover {
+      background: #f5f5f5;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 18px;
+      margin: 6px;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: bold;
+    }
+    .stripe {
+      background: #635bff;
+    }
+    .toss {
+      background: #0064ff;
+    }
+    .note {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 0.9em;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>MAEUM_BOT 요금제</h1>
+  <table>
+    <tr>
+      <th>플랜</th>
+      <th>가격</th>
+      <th>기능</th>
+      <th>구독하기</th>
+    </tr>
+    <tr>
+      <td>Free</td>
+      <td>₩0</td>
+      <td><br>일 15회 메시지</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td>Pro</td>
+      <td>₩4,900 / 월</td>
+      <td><br>월 2,700회 메시지</td>
+      <td>
+        <a href="https://buy.stripe.com/test_dummy_pro" class="btn stripe">Stripe 결제</a><br>
+        <a href="https://pay.toss.im/pay/test_dummy_pro" class="btn toss">Toss 결제</a>
+      </td>
+    </tr>
+    <tr>
+      <td>Pro+</td>
+      <td>₩8,900 / 월</td>
+      <td><br>월 9,000회 메시지</td>
+      <td>
+        <a href="https://buy.stripe.com/test_dummy_proplus" class="btn stripe">Stripe 결제</a><br>
+        <a href="https://pay.toss.im/pay/test_dummy_proplus" class="btn toss">Toss 결제</a>
+      </td>
+    </tr>
+    <tr>
+      <td>Enterprise</td>
+      <td>₩89,000 / 월 ~</td>
+      <td>모든 모델, API 연동, SLA 지원</td>
+      <td>
+        <a href="mailto:contact@maeum.io" class="btn stripe">문의하기</a>
+      </td>
+    </tr>
+  </table>
+  <p class="note"><br>
+  ※ 결제 버튼은 테스트용이며, 실제 결제 시 Stripe Checkout / Toss API 링크로 교체하세요.</p>
+</body>
+</html>
